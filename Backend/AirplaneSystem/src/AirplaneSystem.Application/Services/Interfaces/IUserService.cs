@@ -1,0 +1,14 @@
+using AirplaneSystem.Application.Common.Models;
+using AirplaneSystem.Application.DTOs.Users;
+
+namespace AirplaneSystem.Application.Services.Interfaces;
+
+public interface IUserService
+{
+    Task<UserDto> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<PagedResult<UserDto>> GetAllAsync(PaginationQuery query, CancellationToken ct = default);
+    Task<UserDto> UpdateProfileAsync(Guid userId, UpdateProfileRequest request, CancellationToken ct = default);
+    Task UpdatePassportAsync(Guid userId, PassportDto request, CancellationToken ct = default);
+    Task SetActiveStatusAsync(Guid userId, bool isActive, CancellationToken ct = default);
+    Task SoftDeleteAsync(Guid userId, CancellationToken ct = default);
+}

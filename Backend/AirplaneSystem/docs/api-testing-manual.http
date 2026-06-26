@@ -1,0 +1,646 @@
+﻿### =============================================================
+### AIRPLANE SYSTEM API — DEVELOPER TESTING MANUAL
+### =============================================================
+### Base URL: https://localhost:7001/api/v1
+### Tool: REST Client (VS Code extension) or Postman
+###
+### SEED CREDENTIALS:
+###   admin@airsystem.com    / Test@1234  (Admin)
+###   agent@airsystem.com    / Test@1234  (Agent)
+###   passenger@airsystem.com / Test@1234  (Passenger)
+###
+### QUICK START:
+###   1. dotnet run --project src/AirplaneSystem.API
+###   2. Login as passenger to get a token
+###   3. Copy accessToken to @passengerToken variable below
+### =====================  ========================================
+
+@baseUrl = https://localhost:7001/api/v1
+@adminToken = PASTE_ADMIN_TOKEN_HERE
+@agentToken = PASTE_AGENT_TOKEN_HERE
+@passengerToken = PASTE_PASSENGER_TOKEN_HERE
+
+# ─────────────────────────────────────────────────────────────
+# 1. HEALTH CHECK
+# ─────────────────────────────────────────────────────────────
+
+### Health Check
+GET https://localhost:7001/health
+Accept: application/json
+
+### Swagger UI
+# Open in browser: https://localhost:7001/swagger
+
+
+# ─────────────────────────────────────────────────────────────
+# 2. AUTH — REGISTER & LOGIN
+# ─────────────────────────────────────────────────────────────
+
+### Register new passenger
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "Alice",
+  "lastName": "Johnson",
+  "email": "alice.johnson@example.com",
+  "password": "Test@1234!",
+  "phoneNumber": "+12125550101",
+  "dateOfBirth": "1990-05-15",
+  "nationality": "US"
+}
+
+###
+
+### Login as admin
+# @name adminLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@airsystem.com",
+  "password": "Test@1234"
+}
+
+###
+
+### Login as passenger
+# @name passengerLogin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "passenger@airsystem.com",
+  "password": "Test@1234"
+}
+
+###
+
+### Get current user (requires token)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{passengerToken}}
+
+###
+
+### Refresh token
+POST {{baseUrl}}/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refreshToken": "PASTE_REFRESH_TOKEN_HERE"
+}
+
+###
+
+### Forgot password
+POST {{baseUrl}}/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "passenger@airsystem.com"
+}
+
+###
+
+### Revoke token (logout)
+POST {{baseUrl}}/auth/revoke-token
+Authorization: Bearer {{passengerToken}}
+Content-Type: application/json
+
+{
+  "token": "PASTE_REFRESH_TOKEN_HERE"
+}
+
+
+# ─────────────────────────────────────────────────────────────
+# 3. USER PROFILE
+# ─────────────────────────────────────────────────────────────
+
+### Get own profile
+GET {{baseUrl}}/users/profile
+Authorization: Bearer {{passengerToken}}
+
+###
+
+### Update profile
+PUT {{baseUrl}}/users/profile
+Authorization: Bearer {{passengerToken}}
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Traveler",
+  "phoneNumber": "+12125550200",
+  "profilePictureUrl": null
+}
+
+###
+
+### Update passport
+PUT {{baseUrl}}/users/passport
+Authorization: Bearer {{passengerToken}}
+Content-Type: application/json
+
+{
+  "passportNumber": "A12345678",
+  "issuingCountry": "United States",
+  "issuedDate": "2020-01-15",
+  "expiryDate": "2030-01-15"
+}
+
+###
+
+### List all users (Admin only)
+GET {{baseUrl}}/users?pageNumber=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+
+# ─────────────────────────────────────────────────────────────
+# 4. AIRPORTS
+# ─────────────────────────────────────────────────────────────
+
+### List all airports
+GET {{baseUrl}}/airports?pageNumber=1&pageSize=20
+Accept: application/json
+
+###
+
+### Get airport by IATA code
+GET {{baseUrl}}/airports/JFK
+
+###
+
+### Search airports
+GET {{baseUrl}}/airports?searchTerm=London&pageSize=5
+
+###
+
+### Create airport (Admin only)
+POST {{baseUrl}}/airports
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "iataCode": "TST",
+  "icaoCode": "KTST",
+  "name": "Test International Airport",
+  "city": "Test City",
+  "country": "United States",
+  "countryCode": "US",
+  "latitude": 40.000000,
+  "longitude": -74.000000,
+  "timeZone": "America/New_York"
+}
+
+
+# ─────────────────────────────────────────────────────────────
+# 5. AIRLINES
+# ─────────────────────────────────────────────────────────────
+
+### List all airlines
+GET {{baseUrl}}/airlines
+
+###
+
+### Get airline by ID
+GET {{baseUrl}}/airlines/PASTE_AIRLINE_ID_HERE
+
+
+# ─────────────────────────────────────────────────────────────
+# 6. FLIGHTS
+# ─────────────────────────────────────────────────────────────
+
+### Get flight list (Admin/Agent)
+GET {{baseUrl}}/flights?pageNumber=1&pageSize=10
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Get flight by ID
+GET {{baseUrl}}/flights/PASTE_FLIGHT_ID_HERE
+
+###
+
+### Get seat map
+GET {{baseUrl}}/flights/PASTE_FLIGHT_ID_HERE/seats
+Authorization: Bearer {{passengerToken}}
+
+###
+
+### Update flight status (Admin/Agent)
+PATCH {{baseUrl}}/flights/PASTE_FLIGHT_ID_HERE/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "Delayed",
+  "gateNumber": "B12",
+  "delayReason": "Crew delay"
+}
+
+###
+
+### Create flight (Admin only)
+POST {{baseUrl}}/flights
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "flightNumber": "AA999",
+  "airlineId": "PASTE_AIRLINE_ID",
+  "aircraftId": "PASTE_AIRCRAFT_ID",
+  "routeId": "PASTE_ROUTE_ID",
+  "departureTime": "2026-09-01T14:00:00Z",
+  "arrivalTime": "2026-09-01T21:00:00Z",
+  "economyBasePrice": 599.00,
+  "businessBasePrice": 1899.00,
+  "firstClassBasePrice": 4800.00,
+  "airportFee": 45.00,
+  "taxPercentage": 12.5,
+  "gateNumber": "D22"
+}
+
+
+# ─────────────────────────────────────────────────────────────
+# 7. SEARCH
+# ─────────────────────────────────────────────────────────────
+
+### Search one-way flights: JFK → LHR
+POST {{baseUrl}}/search/one-way
+Content-Type: application/json
+
+{
+  "originIata": "JFK",
+  "destinationIata": "LHR",
+  "departureDate": "2026-08-15",
+  "passengers": {
+    "adults": 2,
+    "children": 1,
+    "infants": 0
+  },
+  "seatClass": "Economy",
+  "maxStops": 1,
+  "sortBy": "price"
+}
+
+###
+
+### Search round-trip: JFK ↔ LHR
+POST {{baseUrl}}/search/round-trip
+Content-Type: application/json
+
+{
+  "originIata": "JFK",
+  "destinationIata": "LHR",
+  "departureDate": "2026-08-15",
+  "returnDate": "2026-08-25",
+  "passengers": {
+    "adults": 1,
+    "children": 0,
+    "infants": 0
+  },
+  "seatClass": "Business",
+  "maxStops": 0,
+  "sortBy": "price"
+}
+
+###
+
+### Search multi-city
+POST {{baseUrl}}/search/multi-city
+Content-Type: application/json
+
+{
+  "legs": [
+    {
+      "originIata": "JFK",
+      "destinationIata": "LHR",
+      "departureDate": "2026-08-15"
+    },
+    {
+      "originIata": "LHR",
+      "destinationIata": "DXB",
+      "departureDate": "2026-08-20"
+    }
+  ],
+  "passengers": {
+    "adults": 1,
+    "children": 0,
+    "infants": 0
+  },
+  "seatClass": "Economy"
+}
+
+
+# ─────────────────────────────────────────────────────────────
+# 8. BOOKINGS
+# ─────────────────────────────────────────────────────────────
+# NOTE: Replace flightId and seatId with real IDs from search results
+
+### Create booking (starts 15-min hold timer)
+POST {{baseUrl}}/bookings
+Authorization: Bearer {{passengerToken}}
+Content-Type: application/json
+
+{
+  "tripType": "OneWay",
+  "segments": [
+    {
+      "flightId": "PASTE_FLIGHT_ID_FROM_SEARCH",
+      "seatClass": "Economy"
+    }
+  ],
+  "passengers": [
+    {
+      "firstName": "John",
+      "lastName": "Smith",
+      "passengerType": "Adult",
+      "dateOfBirth": "1990-05-15",
+      "passportNumber": "US123456789",
+      "passportExpiry": "2030-01-01",
+      "passportCountry": "United States"
+    },
+    {
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "passengerType": "Adult",
+      "dateOfBirth": "1992-08-22",
+      "passportNumber": "US987654321",
+      "passportExpiry": "2031-06-30",
+      "passportCountry": "United States"
+    }
+  ],
+  "promoCode": "WELCOME10"
+}
+
+###
+
+### Get my bookings
+GET {{baseUrl}}/bookings?pageNumber=1&pageSize=10
+Authorization: Bearer {{passengerToken}}
+
+###
+
+### Get booking by ID
+GET {{baseUrl}}/bookings/PASTE_BOOKING_ID_HERE
+Authorization: Bearer {{passengerToken}}
+
+###
+
+### Get booking by reference
+GET {{baseUrl}}/bookings/reference/PASTE_BOOKING_REFERENCE_HERE
+Authorization: Bearer {{passengerToken}}
+
+###
+
+### Select seat
+POST {{baseUrl}}/bookings/PASTE_BOOKING_ID_HERE/select-seat
+Authorization: Bearer {{passengerToken}}
+Content-Type: application/json
+
+{
+  "passengerId": "PASTE_PASSENGER_ID_HERE",
+  "seatId": "PASTE_SEAT_ID_HERE"
+}
+
+###
+
+### Cancel booking
+PATCH {{baseUrl}}/bookings/PASTE_BOOKING_ID_HERE/cancel
+Authorization: Bearer {{passengerToken}}
+Content-Type: application/json
+
+{
+  "reason": "Change of travel plans"
+}
+
+###
+
+### Admin: Get all bookings
+GET {{baseUrl}}/bookings/admin?pageNumber=1&pageSize=20
+Authorization: Bearer {{adminToken}}
+
+
+# ─────────────────────────────────────────────────────────────
+# 9. PAYMENTS
+# ─────────────────────────────────────────────────────────────
+# FLOW: 1) Validate promo → 2) Create booking → 3) Create intent
+#       → 4) Use Stripe.js on frontend → 5) Confirm payment
+
+### Validate promo code
+POST {{baseUrl}}/payments/promo/validate
+Authorization: Bearer {{passengerToken}}
+Content-Type: application/json
+
+{
+  "code": "WELCOME10",
+  "cartTotal": 850.00
+}
+
+###
+
+### Create Stripe PaymentIntent
+POST {{baseUrl}}/payments/intent
+Authorization: Bearer {{passengerToken}}
+Content-Type: application/json
+
+{
+  "bookingId": "PASTE_BOOKING_ID_HERE"
+}
+
+### RESPONSE INCLUDES:
+### {
+###   "paymentIntentId": "pi_xxx",
+###   "clientSecret": "pi_xxx_secret_xxx",   ← use this in Stripe.js
+###   "amount": 850.00,
+###   "currency": "usd"
+### }
+
+###
+
+### Confirm payment (call after Stripe.js succeeds)
+POST {{baseUrl}}/payments/confirm
+Authorization: Bearer {{passengerToken}}
+Content-Type: application/json
+
+{
+  "paymentIntentId": "pi_PASTE_PAYMENT_INTENT_ID"
+}
+
+### After confirmation: booking becomes Confirmed, tickets are generated
+
+###
+
+### Request refund
+POST {{baseUrl}}/payments/refund
+Authorization: Bearer {{passengerToken}}
+Content-Type: application/json
+
+{
+  "bookingId": "PASTE_BOOKING_ID_HERE",
+  "reason": "Flight schedule changed significantly"
+}
+
+###
+
+### Admin: Process/deny refund
+PATCH {{baseUrl}}/payments/refund/PASTE_REFUND_ID_HERE/process
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "approve": true,
+  "denialReason": null
+}
+
+###
+
+### Admin: List all payments
+GET {{baseUrl}}/payments/admin?pageNumber=1&pageSize=20
+Authorization: Bearer {{adminToken}}
+
+
+# ─────────────────────────────────────────────────────────────
+# 10. TICKETS
+# ─────────────────────────────────────────────────────────────
+
+### Get tickets for a booking
+GET {{baseUrl}}/tickets/booking/PASTE_BOOKING_ID_HERE
+Authorization: Bearer {{passengerToken}}
+
+###
+
+### Get ticket by number
+GET {{baseUrl}}/tickets/PASTE_TICKET_NUMBER_HERE
+Authorization: Bearer {{passengerToken}}
+
+###
+
+### Download e-ticket PDF
+GET {{baseUrl}}/tickets/PASTE_TICKET_NUMBER_HERE/download
+Authorization: Bearer {{passengerToken}}
+# Response: application/pdf binary — save as .pdf
+
+###
+
+### Get boarding pass PDF (includes QR code)
+GET {{baseUrl}}/tickets/PASTE_TICKET_NUMBER_HERE/boarding-pass
+Authorization: Bearer {{passengerToken}}
+# Response: application/pdf binary — save as .pdf
+
+###
+
+### Web check-in
+POST {{baseUrl}}/tickets/PASTE_TICKET_NUMBER_HERE/check-in
+Authorization: Bearer {{passengerToken}}
+
+
+# ─────────────────────────────────────────────────────────────
+# 11. ADMIN DASHBOARD & REPORTS
+# ─────────────────────────────────────────────────────────────
+
+### Dashboard KPIs
+GET {{baseUrl}}/admin/dashboard
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Dashboard with date range
+GET {{baseUrl}}/admin/dashboard?from=2026-01-01&to=2026-12-31
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Revenue report
+GET {{baseUrl}}/admin/reports/revenue?from=2026-01-01&to=2026-12-31
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Booking report
+GET {{baseUrl}}/admin/reports/bookings?from=2026-01-01&to=2026-12-31
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Audit logs
+GET {{baseUrl}}/admin/audit-logs?pageNumber=1&pageSize=50
+Authorization: Bearer {{adminToken}}
+
+###
+
+### Create travel agent
+POST {{baseUrl}}/admin/agents
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "firstName": "Bob",
+  "lastName": "Agent",
+  "email": "bob.agent@travelco.com",
+  "phoneNumber": "+12125550300"
+}
+
+###
+
+### Send flight alert manually
+POST {{baseUrl}}/admin/notifications/flight-alert
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "flightId": "PASTE_FLIGHT_ID_HERE",
+  "isCancellation": false
+}
+
+
+# ─────────────────────────────────────────────────────────────
+# 12. RATE LIMITING TEST
+# ─────────────────────────────────────────────────────────────
+
+### Hit auth endpoint 6 times to trigger rate limit (5 per 15 min)
+### Expected: 6th request returns 429 Too Many Requests
+
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "wrong@example.com",
+  "password": "wrongpassword"
+}
+
+
+# ─────────────────────────────────────────────────────────────
+# NOTES FOR TESTING
+# ─────────────────────────────────────────────────────────────
+#
+# 1. BOOKING EXPIRY TEST:
+#    - Create a booking (gets 15-min hold)
+#    - Wait 15+ minutes (or set BookingHoldMinutes=1 in appsettings)
+#    - BookingExpiryService runs every 60s
+#    - Booking status becomes "Expired"
+#
+# 2. STRIPE TESTING:
+#    - Use Stripe test card: 4242 4242 4242 4242
+#    - Expiry: any future date, CVC: any 3 digits
+#    - Use Stripe CLI to test webhooks: stripe listen --forward-to localhost:7001/api/v1/payments/webhook
+#
+# 3. EMAIL TESTING:
+#    - Configure Gmail app password in appsettings.Development.json
+#    - Or use Mailhog/Mailtrap for local testing
+#
+# 4. ENCRYPTION:
+#    - Set AIRSYSTEM_MASTER_KEY environment variable before running
+#    - Local dev uses default key (change for production)
+#
+# 5. FULL BOOKING FLOW:
+#    POST /search/one-way → find flightId
+#    POST /bookings → get bookingId + reference (15-min hold starts)
+#    POST /payments/promo/validate (optional)
+#    POST /payments/intent → get clientSecret
+#    [Use Stripe.js frontend with clientSecret]
+#    POST /payments/confirm → booking confirmed, tickets generated
+#    GET  /tickets/booking/{bookingId} → get ticket numbers
+#    GET  /tickets/{number}/download → PDF e-ticket
+#    GET  /tickets/{number}/boarding-pass → QR boarding pass PDF
+
