@@ -15,6 +15,7 @@ public class UnitOfWork : IUnitOfWork
     private IPaymentRepository? _payments;
     private IAirportRepository? _airports;
     private IAirlineRepository? _airlines;
+    private IRouteRepository? _routes;
     private ITicketRepository? _tickets;
     private IPromoCodeRepository? _promoCodes;
     private IAuditLogRepository? _auditLogs;
@@ -27,6 +28,7 @@ public class UnitOfWork : IUnitOfWork
     public IPaymentRepository Payments => _payments ??= new PaymentRepository(_context);
     public IAirportRepository Airports => _airports ??= new AirportRepository(_context);
     public IAirlineRepository Airlines => _airlines ??= new AirlineRepository(_context);
+    public IRouteRepository Routes => _routes ??= new RouteRepository(_context);
     public ITicketRepository Tickets => _tickets ??= new TicketRepository(_context);
     public IPromoCodeRepository PromoCodes => _promoCodes ??= new PromoCodeRepository(_context);
     public IAuditLogRepository AuditLogs => _auditLogs ??= new AuditLogRepository(_context);

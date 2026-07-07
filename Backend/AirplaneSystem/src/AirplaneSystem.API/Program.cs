@@ -1,7 +1,9 @@
 using AirplaneSystem.API.Filters;
 using AirplaneSystem.API.Middleware;
 using AirplaneSystem.Application;
+using AirplaneSystem.Application.Common.Interfaces;
 using AirplaneSystem.Infrastructure;
+using AirplaneSystem.Infrastructure.ExternalServices.FileStorage;
 using AirplaneSystem.Infrastructure.Persistence;
 using AirplaneSystem.Infrastructure.Seeds;
 using Asp.Versioning;
@@ -29,11 +31,23 @@ builder.Host.UseSerilog();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
+// ── File Storage (local disk under wwwroot/uploads) ──────────────────────────
+var webRootPath = builder.Environment.WebRootPath;
+if (string.IsNullOrEmpty(webRootPath))
+{
+    webRootPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot");
+    builder.Environment.WebRootPath = webRootPath;
+}
+Directory.CreateDirectory(Path.Combine(webRootPath, "uploads"));
+
+builder.Services.AddSingleton<IFileStorageService>(sp =>
+    new LocalFileStorageService(webRootPath, sp.GetRequiredService<ILogger<LocalFileStorageService>>()));
+
 // ── Controllers & JSON ───────────────────────────────────────────────────────
 builder.Services.AddControllers(options =>
-    {
-        options.Filters.Add<ValidationFilter>();
-    })
+{
+    options.Filters.Add<ValidationFilter>();
+})
     .AddJsonOptions(opts =>
     {
         opts.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
@@ -186,6 +200,8 @@ using (var scope = app.Services.CreateScope())
 // ── Middleware Pipeline (ORDER IS CRITICAL) ───────────────────────────────────
 app.UseHsts();
 app.UseHttpsRedirection();
+
+app.UseStaticFiles(); // serves /uploads/** (airline logos/gallery, profile pictures)
 
 app.UseRouting();
 app.UseRateLimiter();

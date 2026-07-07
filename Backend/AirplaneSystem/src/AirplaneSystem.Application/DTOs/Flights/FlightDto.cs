@@ -6,10 +6,13 @@ public class FlightDto
 {
     public Guid Id { get; set; }
     public string FlightNumber { get; set; } = string.Empty;
+    public Guid AirlineId { get; set; }
     public string AirlineName { get; set; } = string.Empty;
     public string AirlineIata { get; set; } = string.Empty;
     public string? AirlineLogoUrl { get; set; }
+    public Guid AircraftId { get; set; }
     public string AircraftModel { get; set; } = string.Empty;
+    public Guid RouteId { get; set; }
     public string OriginIata { get; set; } = string.Empty;
     public string OriginCity { get; set; } = string.Empty;
     public string OriginCountry { get; set; } = string.Empty;

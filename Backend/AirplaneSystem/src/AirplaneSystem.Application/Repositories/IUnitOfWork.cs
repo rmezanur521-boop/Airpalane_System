@@ -8,6 +8,7 @@ public interface IUnitOfWork : IDisposable
     IPaymentRepository Payments { get; }
     IAirportRepository Airports { get; }
     IAirlineRepository Airlines { get; }
+    IRouteRepository Routes { get; }
     ITicketRepository Tickets { get; }
     IPromoCodeRepository PromoCodes { get; }
     IAuditLogRepository AuditLogs { get; }

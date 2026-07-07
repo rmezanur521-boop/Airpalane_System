@@ -29,6 +29,16 @@ public class FlightMappingProfile : Profile
             .ForMember(d => d.Id, o => o.Ignore())
             .ForMember(d => d.IsActive, o => o.MapFrom(_ => true));
 
+        CreateMap<Route, RouteDto>()
+            .ForMember(d => d.OriginIata, o => o.MapFrom(s => s.OriginAirport.IataCode))
+            .ForMember(d => d.OriginCity, o => o.MapFrom(s => s.OriginAirport.City))
+            .ForMember(d => d.DestinationIata, o => o.MapFrom(s => s.DestinationAirport.IataCode))
+            .ForMember(d => d.DestinationCity, o => o.MapFrom(s => s.DestinationAirport.City));
+
+        CreateMap<Airline, AirlineDto>()
+            .ForMember(d => d.PrimaryImageUrl, o => o.Ignore());
+        CreateMap<AirlineImage, AirlineImageDto>();
+
         CreateMap<Seat, SeatDto>();
     }
 }

@@ -13,4 +13,5 @@ public class Airline : BaseEntity
     public string? ContactPhone { get; set; }
 
     public ICollection<Aircraft> Aircrafts { get; set; } = new List<Aircraft>();
+    public ICollection<AirlineImage> Images { get; set; } = new List<AirlineImage>();
 }

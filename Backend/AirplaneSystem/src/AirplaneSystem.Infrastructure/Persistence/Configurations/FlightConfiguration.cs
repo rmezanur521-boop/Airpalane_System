@@ -43,6 +43,24 @@ public class AirlineConfiguration : IEntityTypeConfiguration<Airline>
     }
 }
 
+public class AirlineImageConfiguration : IEntityTypeConfiguration<AirlineImage>
+{
+    public void Configure(EntityTypeBuilder<AirlineImage> builder)
+    {
+        builder.HasKey(i => i.Id);
+        builder.Property(i => i.ImageUrl).IsRequired().HasMaxLength(500);
+
+        builder.HasIndex(i => i.AirlineId);
+
+        builder.HasOne(i => i.Airline)
+            .WithMany(a => a.Images)
+            .HasForeignKey(i => i.AirlineId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Ignore(i => i.DomainEvents);
+    }
+}
+
 public class AircraftConfiguration : IEntityTypeConfiguration<Aircraft>
 {
     public void Configure(EntityTypeBuilder<Aircraft> builder)

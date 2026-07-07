@@ -90,7 +90,7 @@ public class AuthService : IAuthService
         var (newAccessToken, newRefreshToken) = await GenerateTokensAsync(user, ipAddress, ct);
         existingToken.ReplacedByToken = HashToken(newRefreshToken);
 
-        _uow.Users.Update(user);
+       // _uow.Users.Update(user);
         await _uow.SaveChangesAsync(ct);
 
         return BuildAuthResponse(newAccessToken, newRefreshToken, user);
@@ -176,9 +176,9 @@ public class AuthService : IAuthService
             ExpiresAt = DateTime.UtcNow.AddDays(7),
             CreatedByIp = ipAddress
         };
-        await _uow.Users.GetByIdAsync(user.Id, ct); // ensure tracked
-        user.RefreshTokens.Add(refreshToken);
-        _uow.Users.Update(user);
+        //await _uow.Users.GetByIdAsync(user.Id, ct); // ensure tracked
+        //user.RefreshTokens.Add(refreshToken);
+        //_uow.Users.Update(user);
         await _uow.SaveChangesAsync(ct);
         return (accessToken, refreshTokenValue);
     }
