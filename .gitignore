@@ -2,7 +2,9 @@
 bin/
 obj/
 out/
-
+node_modules/
+.vite/
+dist/
 ## Visual Studio / Rider
 .vs/
 .idea/
