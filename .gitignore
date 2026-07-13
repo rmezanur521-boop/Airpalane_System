@@ -2,9 +2,14 @@
 bin/
 obj/
 out/
-node_modules/
-.vite/
-dist/
+# Frontend
+**/node_modules/
+**/.vite/
+**/dist/
+**/coverage/
+**/.cache/
+**/deps/
+**/deps_temp_*/
 ## Visual Studio / Rider
 .vs/
 .idea/

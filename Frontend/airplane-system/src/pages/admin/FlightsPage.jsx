@@ -11,8 +11,8 @@ import Alert        from '@/components/ui/Alert';
 import flightService  from '@/api/flightService';
 import airlineService from '@/api/airlineService';
 import airportService from '@/api/airportService';
-import adminService   from '@/api/adminService';
-import { usePagination } from '@/hooks/usePagination';
+import routeService   from '@/api/routeService';
+import adminService   from '@/api/adminService';import { usePagination } from '@/hooks/usePagination';
 import { useDebounce }   from '@/hooks/useDebounce';
 import { formatDateTime, formatCurrency } from '@/utils/formatters';
 import { FLIGHT_STATUS_COLOR, FLIGHT_STATUS } from '@/utils/constants';
@@ -37,7 +37,7 @@ export default function FlightsPage() {
 
   const [airlines,  setAirlines]  = useState([]);
   const [airports,  setAirports]  = useState([]);
-
+  const [routes,    setRoutes]    = useState([]);
   // Modal state
   const [formModal,   setFormModal]   = useState(false);
   const [editFlight,  setEditFlight]  = useState(null);
@@ -63,13 +63,16 @@ export default function FlightsPage() {
   const [sendingAlert, setSendingAlert] = useState(false);
 
   useEffect(() => {
-    airlineService.getAirlines().then(({ data }) =>
-      setAirlines((data ?? []).map((a) => ({ value: a.id, label: `${a.name} (${a.iataCode})` })))
-    ).catch(() => {});
-    airportService.getAirports({ pageSize: 200 }).then(({ data }) =>
-      setAirports((data.items ?? []).map((a) => ({ value: a.iataCode, label: `${a.name} (${a.iataCode})` })))
-    ).catch(() => {});
-  }, []);
+  airlineService.getAirlines().then(({ data }) =>
+    setAirlines((data ?? []).map((a) => ({ value: a.id, label: `${a.name} (${a.iataCode})` })))
+  ).catch(() => {});
+  airportService.getAirports({ pageSize: 200 }).then(({ data }) =>
+    setAirports((data.items ?? []).map((a) => ({ value: a.iataCode, label: `${a.name} (${a.iataCode})` })))
+  ).catch(() => {});
+  routeService.getRoutes().then(({ data }) =>
+    setRoutes((data ?? []).map((r) => ({ value: r.id, label: r.name })))
+  ).catch(() => {});
+}, []);
 
   useEffect(() => { resetPage(); }, [debSearch]);
 
@@ -95,13 +98,13 @@ export default function FlightsPage() {
   };
 
   const openEdit = (f) => {
-    setEditFlight(f);
-    setForm({
-      flightNumber:       f.flightNumber ?? '',
-      airlineId:          '',
-      aircraftId:         '',
-      routeId:            '',
-      departureTime:      f.departureTime?.slice(0, 16) ?? '',
+  setEditFlight(f);
+  setForm({
+    flightNumber:       f.flightNumber ?? '',
+    airlineId:          f.airlineId  ?? '',
+    aircraftId:         f.aircraftId ?? '',
+    routeId:            f.routeId    ?? '',
+    departureTime:      f.departureTime?.slice(0, 16) ?? '',
       arrivalTime:        f.arrivalTime?.slice(0, 16)   ?? '',
       economyBasePrice:   f.economyBasePrice   ?? '',
       businessBasePrice:  f.businessBasePrice  ?? '',
@@ -298,8 +301,8 @@ export default function FlightsPage() {
             onChange={setField('airlineId')} placeholder="Select airline" />
           <Input label="Aircraft ID (UUID)" value={form.aircraftId}
             onChange={setField('aircraftId')} placeholder="UUID" />
-          <Input label="Route ID (UUID)" value={form.routeId}
-            onChange={setField('routeId')} placeholder="UUID" />
+          <Select label="Route" options={routes} value={form.routeId}
+            onChange={setField('routeId')} placeholder="Select route" />
           <Input label="Departure Time" type="datetime-local" value={form.departureTime}
             onChange={setField('departureTime')} required />
           <Input label="Arrival Time" type="datetime-local" value={form.arrivalTime}
