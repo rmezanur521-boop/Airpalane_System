@@ -21,4 +21,11 @@ public interface IFileStorageService
     /// Safe to call with null/unknown paths (no-op).
     /// </summary>
     Task DeleteAsync(string? relativeUrl, CancellationToken ct = default);
+
+    /// <summary>
+    /// Reads the raw bytes of a previously-stored file (e.g. to embed an airline
+    /// logo into a generated PDF or email). Returns null if the path is empty or
+    /// the file no longer exists on disk.
+    /// </summary>
+    Task<byte[]?> ReadAsync(string? relativeUrl, CancellationToken ct = default);
 }

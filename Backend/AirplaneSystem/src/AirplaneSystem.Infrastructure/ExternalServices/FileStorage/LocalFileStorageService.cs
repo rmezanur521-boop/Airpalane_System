@@ -53,6 +53,26 @@ public class LocalFileStorageService : IFileStorageService
         return relativeUrl;
     }
 
+    public Task<byte[]?> ReadAsync(string? relativeUrl, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(relativeUrl))
+            return Task.FromResult<byte[]?>(null);
+
+        try
+        {
+            var trimmed = relativeUrl.TrimStart('/');
+            var fullPath = Path.Combine(_webRootPath, trimmed.Replace('/', Path.DirectorySeparatorChar));
+            return File.Exists(fullPath)
+                ? Task.FromResult<byte[]?>(File.ReadAllBytes(fullPath))
+                : Task.FromResult<byte[]?>(null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to read stored file {RelativeUrl}", relativeUrl);
+            return Task.FromResult<byte[]?>(null);
+        }
+    }
+
     public Task DeleteAsync(string? relativeUrl, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(relativeUrl))

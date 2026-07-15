@@ -18,15 +18,17 @@ public class TicketService : ITicketService
     private readonly IMapper _mapper;
     private readonly IPdfService _pdf;
     private readonly IQrCodeService _qrCode;
+    private readonly IFileStorageService _fileStorage;
     private readonly ILogger<TicketService> _logger;
 
     public TicketService(IUnitOfWork uow, IMapper mapper, IPdfService pdf,
-        IQrCodeService qrCode, ILogger<TicketService> logger)
+        IQrCodeService qrCode, IFileStorageService fileStorage, ILogger<TicketService> logger)
     {
         _uow = uow;
         _mapper = mapper;
         _pdf = pdf;
         _qrCode = qrCode;
+        _fileStorage = fileStorage;
         _logger = logger;
     }
 
@@ -49,7 +51,7 @@ public class TicketService : ITicketService
             ?? throw new NotFoundException($"Ticket '{ticketNumber}' not found.");
 
         var qrBytes = await _qrCode.GenerateAsync(ticket.QrCodeData, ct);
-        var model = BuildTicketPdfModel(ticket, qrBytes);
+        var model = await BuildTicketPdfModelAsync(ticket, qrBytes, ct);
         return await _pdf.GenerateTicketPdfAsync(model, ct);
     }
 
@@ -159,15 +161,22 @@ public class TicketService : ITicketService
         return number;
     }
 
-    private static Common.Interfaces.TicketPdfModel BuildTicketPdfModel(Ticket ticket, byte[]? qrBytes)
+    private async Task<Common.Interfaces.TicketPdfModel> BuildTicketPdfModelAsync(
+        Ticket ticket, byte[]? qrBytes, CancellationToken ct)
     {
+        var airline = ticket.BookingSegment.Flight.Airline;
+        var logoBytes = await _fileStorage.ReadAsync(airline.LogoUrl, ct);
+
         return new Common.Interfaces.TicketPdfModel
         {
             TicketNumber = ticket.TicketNumber,
             BookingReference = ticket.Booking.BookingReference,
+            BookingDate = ticket.Booking.CreatedAt,
             PassengerName = ticket.BookingPassenger.FullName,
             FlightNumber = ticket.BookingSegment.Flight.FlightNumber,
-            AirlineName = ticket.BookingSegment.Flight.Airline.Name,
+            AirlineName = airline.Name,
+            AirlineIata = airline.IataCode,
+            AirlineLogoBytes = logoBytes,
             OriginIata = ticket.BookingSegment.Flight.Route.OriginAirport.IataCode,
             OriginCity = ticket.BookingSegment.Flight.Route.OriginAirport.City,
             DestinationIata = ticket.BookingSegment.Flight.Route.DestinationAirport.IataCode,
@@ -177,6 +186,7 @@ public class TicketService : ITicketService
             SeatClass = ticket.BookingSegment.SeatClass.ToString(),
             SeatNumber = ticket.BookingPassenger.Seat?.SeatNumber,
             TotalAmount = ticket.BookingSegment.SegmentTotal,
+            PaymentStatus = ticket.Booking.Payment?.Status.ToString() ?? "Paid",
             QrCodeBytes = qrBytes
         };
     }

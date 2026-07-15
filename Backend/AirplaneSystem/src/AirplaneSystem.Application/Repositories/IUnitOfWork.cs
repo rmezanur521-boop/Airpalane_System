@@ -13,6 +13,8 @@ public interface IUnitOfWork : IDisposable
     IPromoCodeRepository PromoCodes { get; }
     IAuditLogRepository AuditLogs { get; }
 
+    void MarkAdded<TEntity>(TEntity entity) where TEntity : class;
+
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);
     Task CommitTransactionAsync(CancellationToken ct = default);

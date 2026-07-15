@@ -22,7 +22,7 @@ public class QuestPdfService : IPdfService
                 page.Margin(30);
                 page.DefaultTextStyle(x => x.FontSize(10));
 
-                page.Header().Element(h => BuildHeader(h, model.AirlineName));
+                page.Header().Element(h => BuildHeader(h, model.AirlineName, model.AirlineLogoBytes));
                 page.Content().Element(c => BuildContent(c, model));
                 page.Footer().Element(f => BuildFooter(f, model));
             });
@@ -48,10 +48,13 @@ public class QuestPdfService : IPdfService
         return Task.FromResult(bytes);
     }
 
-    private static void BuildHeader(IContainer container, string airlineName)
+    private static void BuildHeader(IContainer container, string airlineName, byte[]? logoBytes)
     {
         container.Row(row =>
         {
+            if (logoBytes != null)
+                row.ConstantItem(60).AlignMiddle().Image(logoBytes);
+
             row.RelativeItem().Column(col =>
             {
                 col.Item().Text(airlineName).FontSize(22).Bold().FontColor(Colors.Blue.Darken3);
@@ -92,6 +95,10 @@ public class QuestPdfService : IPdfService
                 table.Cell().Padding(5).Text(model.SeatNumber ?? "To be assigned");
                 table.Cell().Padding(5).Text("Total Amount").SemiBold();
                 table.Cell().Padding(5).Text($"USD {model.TotalAmount:F2}").Bold();
+                table.Cell().Padding(5).Text("Payment Status").SemiBold();
+                table.Cell().Padding(5).Text(model.PaymentStatus);
+                table.Cell().Padding(5).Text("Booking Date").SemiBold();
+                table.Cell().Padding(5).Text(model.BookingDate.ToString("dd MMM yyyy"));
             });
         });
     }

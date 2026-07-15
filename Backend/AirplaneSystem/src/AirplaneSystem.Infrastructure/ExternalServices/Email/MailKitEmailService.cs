@@ -25,20 +25,54 @@ public class MailKitEmailService : IEmailService
 
     public async Task SendAsync(IEnumerable<string> recipients, string subject, string htmlBody, CancellationToken ct = default)
     {
-        var host = _config["Smtp:Host"] ?? "smtp.gmail.com";
-        var port = int.Parse(_config["Smtp:Port"] ?? "587");
-        var username = _config["Smtp:Username"] ?? string.Empty;
-        var passwordRaw = _config["Smtp:Password"] ?? string.Empty;
-        var password = _encryption.IsEncrypted(passwordRaw) ? _encryption.Decrypt(passwordRaw) : passwordRaw;
+        var recipientList = recipients.ToList();
+        var message = BuildMessage(recipientList, subject, htmlBody, attachments: null);
+        await DispatchAsync(message, recipientList, ct);
+    }
+
+    public async Task SendWithAttachmentsAsync(string to, string subject, string htmlBody,
+        IEnumerable<EmailAttachment> attachments, CancellationToken ct = default)
+    {
+        var recipientList = new List<string> { to };
+        var message = BuildMessage(recipientList, subject, htmlBody, attachments);
+        await DispatchAsync(message, recipientList, ct);
+    }
+
+    private MimeMessage BuildMessage(IReadOnlyList<string> recipients, string subject, string htmlBody,
+        IEnumerable<EmailAttachment>? attachments)
+    {
         var fromName = _config["Smtp:FromName"] ?? "AirSystem";
-        var fromEmail = _config["Smtp:FromEmail"] ?? username;
+        var fromEmail = _config["Smtp:FromEmail"] ?? _config["Smtp:Username"] ?? string.Empty;
 
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(fromName, fromEmail));
         foreach (var r in recipients)
             message.To.Add(MailboxAddress.Parse(r));
         message.Subject = subject;
-        message.Body = new TextPart("html") { Text = htmlBody };
+
+        var builder = new BodyBuilder { HtmlBody = htmlBody };
+        if (attachments != null)
+        {
+            foreach (var attachment in attachments)
+            {
+                builder.Attachments.Add(
+                    attachment.FileName,
+                    attachment.Content,
+                    ContentType.Parse(attachment.ContentType));
+            }
+        }
+
+        message.Body = builder.ToMessageBody();
+        return message;
+    }
+
+    private async Task DispatchAsync(MimeMessage message, IReadOnlyList<string> recipients, CancellationToken ct)
+    {
+        var host = _config["Smtp:Host"] ?? "smtp.gmail.com";
+        var port = int.Parse(_config["Smtp:Port"] ?? "587");
+        var username = _config["Smtp:Username"] ?? string.Empty;
+        var passwordRaw = _config["Smtp:Password"] ?? string.Empty;
+        var password = _encryption.IsEncrypted(passwordRaw) ? _encryption.Decrypt(passwordRaw) : passwordRaw;
 
         try
         {
@@ -47,7 +81,7 @@ public class MailKitEmailService : IEmailService
             await client.AuthenticateAsync(username, password, ct);
             await client.SendAsync(message, ct);
             await client.DisconnectAsync(true, ct);
-            _logger.LogInformation("Email sent to {Recipients}: {Subject}", string.Join(", ", recipients), subject);
+            _logger.LogInformation("Email sent to {Recipients}: {Subject}", string.Join(", ", recipients), message.Subject);
         }
         catch (Exception ex)
         {

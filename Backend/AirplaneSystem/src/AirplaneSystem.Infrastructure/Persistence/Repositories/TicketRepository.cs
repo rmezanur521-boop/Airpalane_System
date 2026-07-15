@@ -10,7 +10,7 @@ public class TicketRepository : Repository<Ticket>, ITicketRepository
 
     public async Task<Ticket?> GetByTicketNumberAsync(string ticketNumber, CancellationToken ct = default) =>
         await _dbSet
-            .Include(t => t.Booking)
+            .Include(t => t.Booking).ThenInclude(b => b.Payment)
             .Include(t => t.BookingPassenger).ThenInclude(p => p.Seat)
             .Include(t => t.BookingSegment).ThenInclude(s => s.Flight).ThenInclude(f => f.Airline)
             .Include(t => t.BookingSegment).ThenInclude(s => s.Flight).ThenInclude(f => f.Route)
@@ -21,7 +21,8 @@ public class TicketRepository : Repository<Ticket>, ITicketRepository
 
     public async Task<List<Ticket>> GetByBookingIdAsync(Guid bookingId, CancellationToken ct = default) =>
         await _dbSet
-            .Include(t => t.BookingPassenger)
+            .Include(t => t.Booking).ThenInclude(b => b.Payment)
+            .Include(t => t.BookingPassenger).ThenInclude(p => p.Seat)
             .Include(t => t.BookingSegment).ThenInclude(s => s.Flight).ThenInclude(f => f.Airline)
             .Include(t => t.BookingSegment).ThenInclude(s => s.Flight).ThenInclude(f => f.Route)
                 .ThenInclude(r => r.OriginAirport)

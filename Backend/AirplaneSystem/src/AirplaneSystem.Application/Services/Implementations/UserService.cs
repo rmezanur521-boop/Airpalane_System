@@ -67,7 +67,7 @@ public class UserService : IUserService
 
         if (user.PassportInfo == null)
         {
-            user.PassportInfo = new PassportInfo
+            var passport = new PassportInfo
             {
                 UserId = userId,
                 PassportNumber = request.PassportNumber,
@@ -75,16 +75,25 @@ public class UserService : IUserService
                 IssuedDate = request.IssuedDate,
                 ExpiryDate = request.ExpiryDate
             };
+
+            user.PassportInfo = passport;
+
+            // Explicitly mark as Added instead of calling _uow.Users.Update(user),
+            // which would re-walk the whole graph and misclassify this new
+            // child (non-default PK/FK = UserId) as Modified.
+            _uow.MarkAdded(passport);
         }
         else
         {
+            // Entity is already tracked from GetWithPassportAsync — mutating
+            // its properties in place is enough for EF's change tracker to
+            // emit the correct UPDATE. No repository call needed here.
             user.PassportInfo.PassportNumber = request.PassportNumber;
             user.PassportInfo.IssuingCountry = request.IssuingCountry;
             user.PassportInfo.IssuedDate = request.IssuedDate;
             user.PassportInfo.ExpiryDate = request.ExpiryDate;
         }
 
-        _uow.Users.Update(user);
         await _uow.SaveChangesAsync(ct);
     }
 

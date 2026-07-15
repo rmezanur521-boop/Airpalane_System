@@ -5,6 +5,19 @@ const userService = {
 
   updateProfile: (data) => axiosInstance.put("/users/profile", data),
 
+  // axiosInstance defaults to "Content-Type: application/json" for every request.
+  // For a FormData body we must clear that per-request (set to undefined, not
+  // omitted) so axios lets the browser set the correct multipart boundary —
+  // otherwise it silently JSON-stringifies the FormData (see airlineService.js
+  // for the same fix / root-cause note).
+  uploadProfileImage: (file) => {
+    const fd = new FormData();
+    fd.append("file", file); // must match the IFormFile parameter name "file" on UsersController.UploadProfileImage
+    return axiosInstance.post("/users/profile/image", fd, {
+      headers: { "Content-Type": undefined },
+    });
+  },
+
   updatePassport: (data) => axiosInstance.put("/users/passport", data),
 
   // Admin
