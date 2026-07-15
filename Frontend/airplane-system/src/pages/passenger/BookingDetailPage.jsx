@@ -100,7 +100,7 @@ export default function BookingDetailPage() {
 
   const canCancel = ['PendingPayment', 'Confirmed'].includes(booking.status);
   const canRefund = booking.status === 'Cancelled' &&
-    booking.payment?.status === 'Succeeded';
+  booking.payment?.status === 'Succeeded';  
 
   return (
     <PageWrapper>
@@ -188,6 +188,20 @@ export default function BookingDetailPage() {
                     View receipt
                   </a>
                 </Row>
+                
+              )}
+              //
+              <Row label="Method">{booking.payment.method}</Row>
+              {booking.payment.referenceNumber && (
+                <Row label="Reference No.">{booking.payment.referenceNumber}</Row>
+              )}
+              {booking.payment.status === 'PendingApproval' && (
+                <Alert type="info" className="mt-2"
+                  message="Your payment is under review by our team." />
+              )}
+              {booking.payment.status === 'Rejected' && booking.payment.failureReason && (
+                <Alert type="error" className="mt-2"
+                  message={`Rejected: ${booking.payment.failureReason}`} />
               )}
             </div>
           </div>

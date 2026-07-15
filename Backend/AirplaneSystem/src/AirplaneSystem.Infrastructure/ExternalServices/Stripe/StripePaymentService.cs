@@ -1,12 +1,13 @@
-using AirplaneSystem.Application.Common.Interfaces;
+﻿using AirplaneSystem.Application.Common.Interfaces;
+using AirplaneSystem.Application.Common.Models;
 using AirplaneSystem.Application.DTOs.Payments;
 using AirplaneSystem.Application.Exceptions;
 using AirplaneSystem.Application.Repositories;
 using AirplaneSystem.Application.Services.Interfaces;
-using AirplaneSystem.Application.Common.Models;
 using AirplaneSystem.Domain.Entities.Payments;
 using AirplaneSystem.Domain.Enums;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Stripe;
@@ -25,10 +26,12 @@ public class StripePaymentService : IPaymentService
     private readonly IEncryptionService _encryption;
     private readonly ITicketService _ticketService;
     private readonly INotificationService _notification;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public StripePaymentService(IUnitOfWork uow, IMapper mapper, IConfiguration config,
-        ILogger<StripePaymentService> logger, IEncryptionService encryption,
-        ITicketService ticketService, INotificationService notification)
+    ILogger<StripePaymentService> logger, IEncryptionService encryption,
+    ITicketService ticketService, INotificationService notification,
+    IHttpContextAccessor httpContextAccessor)                  
     {
         _uow = uow;
         _mapper = mapper;
@@ -37,10 +40,10 @@ public class StripePaymentService : IPaymentService
         _encryption = encryption;
         _ticketService = ticketService;
         _notification = notification;
+        _httpContextAccessor = httpContextAccessor;                
 
         InitializeStripe();
     }
-
     private void InitializeStripe()
     {
         var secretKeyRaw = _config["Stripe:SecretKey"] ?? string.Empty;
@@ -239,6 +242,90 @@ public class StripePaymentService : IPaymentService
         return _mapper.Map<RefundDto>(refund);
     }
 
+    public async Task<PaymentDto> CreateReferencePaymentAsync(
+    CreateReferencePaymentRequest request, CancellationToken ct)
+    {
+        var booking = await _uow.Bookings.GetWithDetailsAsync(request.BookingId, ct)
+            ?? throw new NotFoundException("Booking", request.BookingId);
+
+        if (booking.Status != BookingStatus.PendingPayment)
+            throw new ConflictException("Booking is not in a payable state.");
+
+        if (booking.HoldExpiresAt < DateTime.UtcNow)
+            throw new ConflictException("Booking hold has expired. Please create a new booking.");
+
+        // একই booking-এ duplicate reference submit ঠেকানো
+        var existing = await _uow.Payments.GetByBookingIdAsync(request.BookingId, ct);
+        if (existing != null && existing.Status is PaymentStatus.PendingApproval or PaymentStatus.Succeeded)
+            throw new ConflictException("A payment for this booking already exists.");
+
+        var payment = new Payment
+        {
+            BookingId = request.BookingId,
+            Method = request.Method,
+            ReferenceNumber = request.ReferenceNumber,
+            Amount = request.Amount,
+            CurrencyCode = request.CurrencyCode,
+            Status = PaymentStatus.PendingApproval
+        };
+
+        await _uow.Payments.AddAsync(payment, ct);
+        await _uow.SaveChangesAsync(ct);
+
+        return _mapper.Map<PaymentDto>(payment);
+    }
+
+    public async Task<PaymentDto> ApproveReferencePaymentAsync(
+        Guid id, bool approve, string? rejectionReason, CancellationToken ct)
+    {
+        var payment = await _uow.Payments.GetByIdAsync(id, ct)
+            ?? throw new NotFoundException("Payment", id);
+
+        if (payment.Status != PaymentStatus.PendingApproval)
+            throw new ConflictException("Only payments awaiting approval can be reviewed.");
+
+        if (approve)
+        {
+            payment.Status = PaymentStatus.Succeeded;
+            payment.PaidAt = DateTime.UtcNow;
+            payment.ApprovedBy = GetCurrentUserId();
+            payment.ApprovedAt = DateTime.UtcNow;
+
+            _uow.Payments.Update(payment);
+
+            var booking = await _uow.Bookings.GetWithDetailsAsync(payment.BookingId, ct);
+            if (booking != null)
+            {
+                booking.Status = BookingStatus.Confirmed;
+                booking.ConfirmedAt = DateTime.UtcNow;
+                booking.HoldExpiresAt = null;
+                _uow.Bookings.Update(booking);
+            }
+
+            await _uow.SaveChangesAsync(ct);
+
+            try
+            {
+                await _ticketService.GenerateAndPersistTicketsAsync(payment.BookingId, ct);
+                await _notification.SendBookingConfirmationAsync(payment.BookingId, ct);
+                await _notification.SendPaymentReceiptAsync(payment.Id, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Post-approval actions failed for booking {BookingId}", payment.BookingId);
+            }
+        }
+        else
+        {
+            payment.Status = PaymentStatus.Rejected;
+            payment.FailureReason = rejectionReason;
+
+            _uow.Payments.Update(payment);
+            await _uow.SaveChangesAsync(ct);
+        }
+
+        return _mapper.Map<PaymentDto>(payment);
+    }
     private async Task ConfirmPaymentInternalAsync(Payment payment, string? chargeId, CancellationToken ct)
     {
         payment.Status = PaymentStatus.Succeeded;
@@ -274,5 +361,12 @@ public class StripePaymentService : IPaymentService
         {
             _logger.LogError(ex, "Post-payment actions failed for booking {BookingId}", payment.BookingId);
         }
+    }
+    private Guid? GetCurrentUserId()
+    {
+        var userIdClaim = _httpContextAccessor.HttpContext?.User
+            .FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+        return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
     }
 }

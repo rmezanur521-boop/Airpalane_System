@@ -27,8 +27,30 @@ export default function PaymentsAdminPage() {
   const [refundTarget, setRefundTarget] = useState(null);
   const [denyReason,   setDenyReason]   = useState('');
   const [processing,   setProcessing]   = useState(false);
+  // Reference payment review modal state
+  const [reviewModal,  setReviewModal]  = useState(false);
+  const [reviewTarget, setReviewTarget] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [reviewing,    setReviewing]    = useState(false);
 
   useEffect(() => { resetPage(); }, [debSearch]);
+
+  const handleApprovePayment = async (approve) => {
+    setReviewing(true);
+    try {
+      await paymentService.approveReferencePayment(reviewTarget.id, {
+        approve,
+        rejectionReason: approve ? undefined : rejectReason,
+      });
+      toast.success(approve ? 'Payment approved.' : 'Payment rejected.');
+      setReviewModal(false);
+      load();
+    } catch {
+      toast.error('Failed to review payment.');
+    } finally {
+      setReviewing(false);
+    }
+  };
 
   const load = useCallback(() => {
     setLoading(true);
@@ -62,52 +84,59 @@ export default function PaymentsAdminPage() {
   };
 
   const columns = [
-    { key: 'bookingReference', header: 'Booking Ref' },
-    {
-      key: 'amount',
-      header: 'Amount',
-      render: (p) => formatCurrency(p.amount),
-    },
-    { key: 'currencyCode', header: 'Currency' },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (p) => (
-        <Badge color={PAYMENT_STATUS_COLOR[p.status] ?? 'slate'}>{p.status}</Badge>
-      ),
-    },
-    {
-      key: 'paidAt',
-      header: 'Paid At',
-      render: (p) => formatDateTime(p.paidAt),
-    },
-    {
-      key: 'receiptUrl',
-      header: 'Receipt',
-      render: (p) =>
-        p.receiptUrl ? (
-          <a href={p.receiptUrl} target="_blank" rel="noreferrer"
-            className="text-brand-600 hover:underline text-sm">
-            View
-          </a>
-        ) : '—',
-    },
-    {
-      key: 'actions',
-      header: '',
-      render: (p) =>
-        p.status === 'Pending' ? (
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => { setRefundTarget(p); setDenyReason(''); setRefundModal(true); }}
-          >
+  { key: 'bookingReference', header: 'Booking Ref' },
+  {
+    key: 'method',                          
+    header: 'Method',
+    render: (p) => <Badge color="slate">{p.method}</Badge>,
+  },
+  {
+    key: 'amount',
+    header: 'Amount',
+    render: (p) => formatCurrency(p.amount),
+  },
+  { key: 'currencyCode', header: 'Currency' },
+  {
+    key: 'status',
+    header: 'Status',
+    render: (p) => (
+      <Badge color={PAYMENT_STATUS_COLOR[p.status] ?? 'slate'}>{p.status}</Badge>
+    ),
+  },
+  {
+    key: 'referenceNumber',              
+    header: 'Reference No.',
+    render: (p) => p.referenceNumber ?? '—',
+  },
+  {
+    key: 'paidAt',
+    header: 'Paid At',
+    render: (p) => formatDateTime(p.paidAt),
+  },
+  {
+    key: 'actions',
+    header: '',
+    render: (p) => {
+      if (p.status === 'Pending' && p.method === 'Stripe') {
+        return (
+          <Button size="sm" variant="secondary"
+            onClick={() => { setRefundTarget(p); setDenyReason(''); setRefundModal(true); }}>
             Process Refund
           </Button>
-        ) : null,
+        );
+      }
+      if (p.status === 'PendingApproval') {
+        return (
+          <Button size="sm" variant="primary"
+            onClick={() => { setReviewTarget(p); setRejectReason(''); setReviewModal(true); }}>
+            Review Payment
+          </Button>
+        );
+      }
+      return null;
     },
-  ];
-
+  },
+];
   return (
     <div className="animate-fadeIn">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
@@ -158,6 +187,27 @@ export default function PaymentsAdminPage() {
             onClick={() => handleProcessRefund(true)}
           >
             <CheckCircle className="h-4 w-4" /> Approve Refund
+          </Button>
+        </div>
+      </Modal>
+      {/* Reference Payment Review Modal */}
+      <Modal open={reviewModal} onClose={() => setReviewModal(false)} title="Review Payment">
+        <p className="text-sm text-slate-600 mb-4">
+          Reference: <strong>{reviewTarget?.referenceNumber}</strong> for{' '}
+          <strong>{formatCurrency(reviewTarget?.amount)}</strong>
+        </p>
+        <Input
+          label="Rejection reason (only if rejecting)"
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+          placeholder="Reason for rejection…"
+        />
+        <div className="flex gap-3 justify-end mt-6">
+          <Button variant="danger" loading={reviewing} onClick={() => handleApprovePayment(false)}>
+            <XCircle className="h-4 w-4" /> Reject
+          </Button>
+          <Button loading={reviewing} onClick={() => handleApprovePayment(true)}>
+            <CheckCircle className="h-4 w-4" /> Approve
           </Button>
         </div>
       </Modal>

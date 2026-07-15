@@ -9,7 +9,7 @@ import Alert           from '@/components/ui/Alert';
 import Input           from '@/components/ui/Input';
 import bookingService  from '@/api/bookingService';
 import paymentService  from '@/api/paymentService';
-import { TRIP_TYPE, PASSENGER_TYPE } from '@/utils/constants';
+import { TRIP_TYPE, PASSENGER_TYPE, PAYMENT_METHOD, PAYMENT_METHOD_OPTIONS } from '@/utils/constants';
 import { formatCurrency } from '@/utils/formatters';
 import toast from 'react-hot-toast';
 
@@ -38,9 +38,11 @@ export default function BookingFlowPage() {
   const [promoResult, setPromoResult] = useState(null);
   const [promoLoading, setPromoLoading] = useState(false);
   const [booking,     setBooking]     = useState(null);
-  const [intentData,  setIntentData]  = useState(null);
   const [loading,     setLoading]     = useState(false);
   const [error,       setError]       = useState('');
+
+  const [paymentMethod,   setPaymentMethod]   = useState(PAYMENT_METHOD.STRIPE);
+  const [referenceNumber, setReferenceNumber] = useState('');
 
   useEffect(() => {
     if (!flight) navigate('/', { replace: true });
@@ -81,16 +83,31 @@ export default function BookingFlowPage() {
     }
   };
 
-  // ── Step 2 → 3: Create payment intent then confirm ────────────────────────
+  // ── Step 2 → 3: Pay via Stripe OR submit reference payment ────────────────
   const handlePayment = async () => {
     setError('');
+
+    if (paymentMethod !== PAYMENT_METHOD.STRIPE && !referenceNumber.trim()) {
+      setError('Please enter your transaction / reference number.');
+      return;
+    }
+
     setLoading(true);
     try {
-      const { data: intent } = await paymentService.createPaymentIntent(booking.id);
-      setIntentData(intent);
-      // Immediately confirm (simulated — real app would use Stripe.js here)
-      const { data: payment } = await paymentService.confirmPayment(intent.paymentIntentId);
-      toast.success('Payment confirmed! 🎉');
+      if (paymentMethod === PAYMENT_METHOD.STRIPE) {
+        const { data: intent } = await paymentService.createPaymentIntent(booking.id);
+        await paymentService.confirmPayment(intent.paymentIntentId);
+        toast.success('Payment confirmed! 🎉');
+      } else {
+        await paymentService.createReferencePayment({
+          bookingId: booking.id,
+          referenceNumber: referenceNumber.trim(),
+          amount: booking.totalAmount,
+          currencyCode: 'USD',
+          method: paymentMethod,
+        });
+        toast.success('Payment submitted! Awaiting admin approval.');
+      }
       navigate(`/bookings/${booking.id}`, { replace: true });
     } catch (err) {
       setError(err.response?.data?.detail ?? 'Payment failed. Please try again.');
@@ -225,6 +242,7 @@ export default function BookingFlowPage() {
             <h2 className="section-title mb-6">Payment</h2>
             {error && <Alert type="error" message={error} className="mb-4" />}
 
+            {/* Booking summary */}
             <div className="card mb-6">
               <h3 className="font-semibold text-slate-700 mb-4">Booking Summary</h3>
               <div className="flex flex-col gap-2 text-sm">
@@ -249,31 +267,73 @@ export default function BookingFlowPage() {
               </div>
             </div>
 
-            {/* Simulated payment form */}
+            {/* Payment method selector */}
             <div className="card mb-6">
-              <div className="flex items-center gap-2 mb-4">
-                <CreditCard className="h-5 w-5 text-brand-600" />
-                <h3 className="font-semibold text-slate-700">Card Details</h3>
-                <span className="ml-auto text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                  Simulated
-                </span>
-              </div>
-              <div className="flex flex-col gap-4">
-                <Input label="Card number" placeholder="4242 4242 4242 4242" readOnly />
-                <div className="grid grid-cols-2 gap-4">
-                  <Input label="Expiry" placeholder="MM/YY" readOnly />
-                  <Input label="CVC" placeholder="123" readOnly />
-                </div>
+              <h3 className="font-semibold text-slate-700 mb-4">Choose Payment Method</h3>
+              <div className="grid grid-cols-3 gap-3">
+                {PAYMENT_METHOD_OPTIONS.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setPaymentMethod(value)}
+                    className={`p-3 rounded-xl border text-sm font-medium transition
+                      ${paymentMethod === value
+                        ? 'border-brand-600 bg-brand-50 text-brand-700'
+                        : 'border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
+
+            {/* Method-specific form — only ONE of these renders at a time */}
+            {paymentMethod === PAYMENT_METHOD.STRIPE ? (
+              <div className="card mb-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <CreditCard className="h-5 w-5 text-brand-600" />
+                  <h3 className="font-semibold text-slate-700">Card Details</h3>
+                  <span className="ml-auto text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                    Simulated
+                  </span>
+                </div>
+                <div className="flex flex-col gap-4">
+                  <Input label="Card number" placeholder="4242 4242 4242 4242" readOnly />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input label="Expiry" placeholder="MM/YY" readOnly />
+                    <Input label="CVC" placeholder="123" readOnly />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="card mb-6">
+                <Input
+                  label="Transaction / Reference Number"
+                  value={referenceNumber}
+                  onChange={(e) => setReferenceNumber(e.target.value)}
+                  placeholder="e.g. bKash TrxID"
+                />
+                <Alert
+                  type="info"
+                  className="mt-3"
+                  message="Your payment will be verified by our team before confirmation."
+                />
+              </div>
+            )}
 
             <div className="flex items-center justify-between">
               <Button variant="secondary" onClick={() => setStep(1)}>
                 Back
               </Button>
-              <Button onClick={handlePayment} loading={loading}>
+              <Button
+                onClick={handlePayment}
+                loading={loading}
+                disabled={paymentMethod !== PAYMENT_METHOD.STRIPE && !referenceNumber.trim()}
+              >
                 <CreditCard className="h-4 w-4" />
-                Pay {formatCurrency(booking.totalAmount)}
+                {paymentMethod === PAYMENT_METHOD.STRIPE
+                  ? `Pay ${formatCurrency(booking.totalAmount)}`
+                  : 'Submit for Review'}
               </Button>
             </div>
           </div>

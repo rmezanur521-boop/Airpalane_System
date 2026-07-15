@@ -7,6 +7,12 @@ const paymentService = {
   confirmPayment: (paymentIntentId) =>
     axiosInstance.post("/payments/confirm", { paymentIntentId }),
 
+  createReferencePayment: (data) =>
+    axiosInstance.post("/payments/reference", data),
+
+  approveReferencePayment: (id, data) =>
+    axiosInstance.patch(`/payments/${id}/approve`, data),
+
   validatePromo: (code, cartTotal) =>
     axiosInstance.post("/payments/promo/validate", { code, cartTotal }),
 

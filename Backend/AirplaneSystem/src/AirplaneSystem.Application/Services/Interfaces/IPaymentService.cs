@@ -13,4 +13,6 @@ public interface IPaymentService
     Task<PaymentDto> GetByIdAsync(Guid paymentId, CancellationToken ct = default);
     Task<PagedResult<PaymentDto>> GetAllAsync(Common.Models.PaginationQuery query, CancellationToken ct = default);
     Task<RefundDto> ProcessRefundAsync(Guid refundId, bool approve, string? denialReason, CancellationToken ct = default);
+    Task<PaymentDto> CreateReferencePaymentAsync(CreateReferencePaymentRequest request, CancellationToken ct);
+    Task<PaymentDto> ApproveReferencePaymentAsync(Guid id, bool approve, string? rejectionReason, CancellationToken ct);
 }

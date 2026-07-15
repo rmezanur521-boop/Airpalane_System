@@ -39,6 +39,14 @@ export const PAYMENT_STATUS = {
   FAILED: "Failed",
   CANCELLED: "Cancelled",
   REFUNDED: "Refunded",
+  PENDING_APPROVAL: "PendingApproval",
+  REJECTED: "Rejected",
+};
+
+export const PAYMENT_METHOD = {
+  STRIPE: "Stripe",
+  BANK_TRANSFER: "BankTransfer",
+  MOBILE_BANKING: "MobileBanking",
 };
 
 export const REFUND_STATUS = {
@@ -76,10 +84,18 @@ export const FLIGHT_STATUS_COLOR = {
   Arrived: "slate",
 };
 
+export const PAYMENT_METHOD_OPTIONS = [
+  { value: PAYMENT_METHOD.STRIPE, label: "Card" },
+  { value: PAYMENT_METHOD.MOBILE_BANKING, label: "bKash / Nagad" },
+  { value: PAYMENT_METHOD.BANK_TRANSFER, label: "Bank Transfer" },
+];
+
 export const PAYMENT_STATUS_COLOR = {
   Pending: "yellow",
   Succeeded: "green",
   Failed: "red",
   Cancelled: "slate",
   Refunded: "purple",
+  PendingApproval: "blue",
+  Rejected: "red",
 };

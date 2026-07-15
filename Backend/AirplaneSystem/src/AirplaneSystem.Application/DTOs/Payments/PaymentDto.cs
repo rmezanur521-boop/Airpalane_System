@@ -1,4 +1,4 @@
-using AirplaneSystem.Domain.Enums;
+﻿using AirplaneSystem.Domain.Enums;
 
 namespace AirplaneSystem.Application.DTOs.Payments;
 
@@ -7,11 +7,22 @@ public class PaymentDto
     public Guid Id { get; set; }
     public Guid BookingId { get; set; }
     public string BookingReference { get; set; } = string.Empty;
-    public string StripePaymentIntentId { get; set; } = string.Empty;
+
+    public PaymentMethod Method { get; set; }
+
+    // Stripe-specific — Method == Stripe হলে populated থাকবে, নাহলে null
+    public string? StripePaymentIntentId { get; set; }
+
+    // Reference-based (manual) payment fields
+    public string? ReferenceNumber { get; set; }
+    public Guid? ApprovedBy { get; set; }
+    public DateTime? ApprovedAt { get; set; }
+
     public decimal Amount { get; set; }
     public string CurrencyCode { get; set; } = "USD";
     public PaymentStatus Status { get; set; }
     public DateTime? PaidAt { get; set; }
+    public string? FailureReason { get; set; }   // Rejection reason দেখানোর জন্যও কাজে লাগবে
     public string? ReceiptUrl { get; set; }
 }
 

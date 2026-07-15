@@ -21,6 +21,22 @@ public class PaymentsController : ControllerBase
         _logger = logger;
     }
 
+    [HttpPost("reference")]
+    [Authorize]
+    [ProducesResponseType(typeof(PaymentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateReferencePayment(
+    [FromBody] CreateReferencePaymentRequest request, CancellationToken ct) =>
+    Ok(await _paymentService.CreateReferencePaymentAsync(request, ct));
+
+    [HttpPatch("{id:guid}/approve")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(PaymentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ApprovePayment(
+        Guid id, [FromBody] ApprovePaymentRequest request, CancellationToken ct) =>
+        Ok(await _paymentService.ApproveReferencePaymentAsync(id, request.Approve, request.RejectionReason, ct));
+
     [HttpPost("intent")]
     [Authorize]
     [ProducesResponseType(typeof(PaymentIntentResult), StatusCodes.Status200OK)]
@@ -46,6 +62,7 @@ public class PaymentsController : ControllerBase
     [ProducesResponseType(typeof(RefundDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> RequestRefund([FromBody] RefundRequestDto request, CancellationToken ct) =>
         Ok(await _paymentService.RequestRefundAsync(request, ct));
+
 
     [HttpGet("{id:guid}")]
     [Authorize]

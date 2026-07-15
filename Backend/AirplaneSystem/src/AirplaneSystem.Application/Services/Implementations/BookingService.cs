@@ -32,7 +32,7 @@ public class BookingService : IBookingService
 
     public async Task<BookingDto> CreateAsync(Guid userId, CreateBookingRequest request, CancellationToken ct = default)
     {
-        await _uow.BeginTransactionAsync(ct);
+        //await _uow.BeginTransactionAsync(ct);
         try
         {
             var user = await _uow.Users.GetByIdAsync(userId, ct)
@@ -129,7 +129,7 @@ public class BookingService : IBookingService
 
             await _uow.Bookings.AddAsync(booking, ct);
             await _uow.SaveChangesAsync(ct);
-            await _uow.CommitTransactionAsync(ct);
+            //await _uow.CommitTransactionAsync(ct);
 
             _logger.LogInformation("Booking created: {Reference} for user {UserId}", booking.BookingReference, userId);
 

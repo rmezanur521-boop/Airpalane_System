@@ -25,8 +25,8 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(config.GetConnectionString("DefaultConnection"),
                 sql => sql.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
-                    .CommandTimeout(60)
-                    .EnableRetryOnFailure(3)));
+                    .CommandTimeout(60)));
+                    //.EnableRetryOnFailure(3)));
 
         // Repositories & Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
