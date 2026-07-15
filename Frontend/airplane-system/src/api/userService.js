@@ -17,7 +17,7 @@ const userService = {
       headers: { "Content-Type": undefined },
     });
   },
-
+  getPassport: () => axiosInstance.get("/users/passport"),
   updatePassport: (data) => axiosInstance.put("/users/passport", data),
 
   // Admin

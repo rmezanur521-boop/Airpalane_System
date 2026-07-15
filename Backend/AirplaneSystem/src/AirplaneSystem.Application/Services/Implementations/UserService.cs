@@ -5,6 +5,7 @@ using AirplaneSystem.Application.Repositories;
 using AirplaneSystem.Application.Services.Interfaces;
 using AirplaneSystem.Domain.Entities.Users;
 using AutoMapper;
+using System.Diagnostics.CodeAnalysis;
 
 namespace AirplaneSystem.Application.Services.Implementations;
 
@@ -52,22 +53,31 @@ public class UserService : IUserService
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;
         user.PhoneNumber = request.PhoneNumber;
+        
         if (request.ProfilePictureUrl != null)
             user.ProfilePictureUrl = request.ProfilePictureUrl;
+
+        if (request.DateOfBirth.HasValue)
+            user.DateOfBirth = request.DateOfBirth.Value;
 
         _uow.Users.Update(user);
         await _uow.SaveChangesAsync(ct);
         return _mapper.Map<UserDto>(user);
     }
-
-    public async Task UpdatePassportAsync(Guid userId, PassportDto request, CancellationToken ct = default)
+    public async Task<PassportDto?> GetPassportAsync(Guid userId, CancellationToken ct = default)
+    {
+        var user = await _uow.Users.GetWithPassportAsync(userId, ct)
+            ?? throw new NotFoundException("User", userId);
+        return user.PassportInfo == null ? null : _mapper.Map<PassportDto>(user.PassportInfo);
+    }
+    public async Task<PassportDto> UpdatePassportAsync(Guid userId, PassportDto request, CancellationToken ct = default)
     {
         var user = await _uow.Users.GetWithPassportAsync(userId, ct)
             ?? throw new NotFoundException("User", userId);
 
         if (user.PassportInfo == null)
         {
-            var passport = new PassportInfo
+            user.PassportInfo = new PassportInfo
             {
                 UserId = userId,
                 PassportNumber = request.PassportNumber,
@@ -75,19 +85,9 @@ public class UserService : IUserService
                 IssuedDate = request.IssuedDate,
                 ExpiryDate = request.ExpiryDate
             };
-
-            user.PassportInfo = passport;
-
-            // Explicitly mark as Added instead of calling _uow.Users.Update(user),
-            // which would re-walk the whole graph and misclassify this new
-            // child (non-default PK/FK = UserId) as Modified.
-            _uow.MarkAdded(passport);
         }
         else
         {
-            // Entity is already tracked from GetWithPassportAsync — mutating
-            // its properties in place is enough for EF's change tracker to
-            // emit the correct UPDATE. No repository call needed here.
             user.PassportInfo.PassportNumber = request.PassportNumber;
             user.PassportInfo.IssuingCountry = request.IssuingCountry;
             user.PassportInfo.IssuedDate = request.IssuedDate;
@@ -95,6 +95,7 @@ public class UserService : IUserService
         }
 
         await _uow.SaveChangesAsync(ct);
+        return _mapper.Map<PassportDto>(user.PassportInfo);
     }
 
     public async Task SetActiveStatusAsync(Guid userId, bool isActive, CancellationToken ct = default)
@@ -115,4 +116,6 @@ public class UserService : IUserService
         _uow.Users.Update(user);
         await _uow.SaveChangesAsync(ct);
     }
+
+    
 }

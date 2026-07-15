@@ -6,4 +6,5 @@ public class UpdateProfileRequest
     public string LastName { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public string? ProfilePictureUrl { get; set; }
+    public DateOnly? DateOfBirth {  get; set; }
 }

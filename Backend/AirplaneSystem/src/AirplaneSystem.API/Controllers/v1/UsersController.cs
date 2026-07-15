@@ -33,13 +33,23 @@ public class UsersController : ControllerBase
         return Ok(await _userService.UpdateProfileAsync(userId, request, ct));
     }
 
-    [HttpPut("passport")]
+    [HttpGet("passport")]
+    [ProducesResponseType(typeof(PassportDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> GetPassport(CancellationToken ct)
+    {
+        var userId = GetUserId();
+        var passport = await _userService.GetPassportAsync(userId, ct);
+        return passport == null ? NoContent() : Ok(passport);
+    }
+
+    [HttpPut("passport")]
+    [ProducesResponseType(typeof(PassportDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdatePassport([FromBody] PassportDto request, CancellationToken ct)
     {
         var userId = GetUserId();
-        await _userService.UpdatePassportAsync(userId, request, ct);
-        return NoContent();
+        var result = await _userService.UpdatePassportAsync(userId, request, ct);
+        return Ok(result);
     }
 
     [HttpGet]

@@ -33,25 +33,42 @@ export default function ProfilePage() {
         firstName:   data.firstName ?? '',
         lastName:    data.lastName  ?? '',
         phoneNumber: data.phoneNumber ?? '',
+        dateOfBirth: data.dateOfBirth 
+    ? data.dateOfBirth.toString().slice(0, 10)  
+    : '',
       });
       setAvatarUrl(data.profilePictureUrl ?? '');
-      // Prefill passport fields from the existing record, if any — previously
-      // this was never populated, so the form always looked empty even when
-      // a passport had already been saved.
-      setPassport(
-        data.passport
-          ? {
-              passportNumber: data.passport.passportNumber ?? '',
-              issuingCountry: data.passport.issuingCountry ?? '',
-              issuedDate:     data.passport.issuedDate ?? '',
-              expiryDate:     data.passport.expiryDate ?? '',
-            }
-          : EMPTY_PASSPORT
-      );
+      
     }).catch(() => {});
   };
+  const loadPassport = () => {
+        userService.getPassport()
+          .then(({ data }) => {
+            setPassport({
+              passportNumber: data.passportNumber ?? '',
+              issuingCountry: data.issuingCountry ?? '',
+              issuedDate: data.issuedDate
+                ? data.issuedDate.substring(0, 10)
+                : '',
+              expiryDate: data.expiryDate
+                ? data.expiryDate.substring(0, 10)
+                : '',
+            });
+          })
+          .catch((err) => {
+            if (err.response?.status !== 204 &&
+                err.response?.status !== 404) {
+              console.error(err);
+            }
 
-  useEffect(loadProfile, []);
+            setPassport(EMPTY_PASSPORT);
+          });
+      };
+
+  useEffect(() => {
+  loadProfile();
+  loadPassport();
+}, []);
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
@@ -105,9 +122,20 @@ export default function ProfilePage() {
     setPassportError('');
     setSavingPassport(true);
     try {
-      await userService.updatePassport(passport);
-      toast.success('Passport updated!');
-      loadProfile(); // re-fetch so the form reflects exactly what was persisted
+      const { data } = await userService.updatePassport(passport);
+
+setPassport({
+  passportNumber: data.passportNumber ?? '',
+  issuingCountry: data.issuingCountry ?? '',
+  issuedDate: data.issuedDate
+    ? data.issuedDate.substring(0, 10)
+    : '',
+  expiryDate: data.expiryDate
+    ? data.expiryDate.substring(0, 10)
+    : '',
+});
+
+toast.success('Passport updated!');
     } catch (err) {
       setPassportError(err.response?.data?.detail ?? 'Update failed.');
     } finally {
@@ -168,6 +196,13 @@ export default function ProfilePage() {
                 required
               />
             </div>
+            <Input
+                type="date"
+                label="Date of Birth"
+                value={profile.dateOfBirth}
+                onChange={(e) => setProfile((p) => ({ ...p, dateOfBirth: e.target.value }))}
+                required
+              />
             <Input
               label="Phone number"
               type="tel"
