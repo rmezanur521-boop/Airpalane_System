@@ -59,11 +59,12 @@ public class AdminSettingsController : ControllerBase
     /// Uploads (or replaces) the company logo.
     /// </summary>
     [HttpPost("logo")]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(AdminSettingDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> UploadLogo(
-        [FromForm] IFormFile file, CancellationToken ct)
+    [FromForm] UploadFileRequest request, CancellationToken ct)
     {
-        var result = await _adminSettingService.UploadLogoAsync(file, ct);
+        var result = await _adminSettingService.UploadLogoAsync(request.File, ct);
         return Ok(result);
     }
 
@@ -82,11 +83,12 @@ public class AdminSettingsController : ControllerBase
     /// Uploads (or replaces) the favicon.
     /// </summary>
     [HttpPost("favicon")]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(AdminSettingDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> UploadFavicon(
-        [FromForm] IFormFile file, CancellationToken ct)
+    [FromForm] UploadFileRequest request, CancellationToken ct)
     {
-        var result = await _adminSettingService.UploadFaviconAsync(file, ct);
+        var result = await _adminSettingService.UploadFaviconAsync(request.File, ct);
         return Ok(result);
     }
 
