@@ -19,7 +19,7 @@ public class UnitOfWork : IUnitOfWork
     private ITicketRepository? _tickets;
     private IPromoCodeRepository? _promoCodes;
     private IAuditLogRepository? _auditLogs;
-
+    private IAdminSettingRepository? _adminSettings;
     public UnitOfWork(AppDbContext context) => _context = context;
 
     public IUserRepository Users => _users ??= new UserRepository(_context);
@@ -32,6 +32,7 @@ public class UnitOfWork : IUnitOfWork
     public ITicketRepository Tickets => _tickets ??= new TicketRepository(_context);
     public IPromoCodeRepository PromoCodes => _promoCodes ??= new PromoCodeRepository(_context);
     public IAuditLogRepository AuditLogs => _auditLogs ??= new AuditLogRepository(_context);
+    public IAdminSettingRepository AdminSettings => _adminSettings ??= new AdminSettingRepository(_context);
 
     public void MarkAdded<TEntity>(TEntity entity) where TEntity : class
     {

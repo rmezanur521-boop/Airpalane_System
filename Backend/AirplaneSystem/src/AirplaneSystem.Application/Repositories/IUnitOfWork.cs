@@ -1,4 +1,4 @@
-namespace AirplaneSystem.Application.Repositories;
+﻿using AirplaneSystem.Application.Repositories;
 
 public interface IUnitOfWork : IDisposable
 {
@@ -12,6 +12,7 @@ public interface IUnitOfWork : IDisposable
     ITicketRepository Tickets { get; }
     IPromoCodeRepository PromoCodes { get; }
     IAuditLogRepository AuditLogs { get; }
+    IAdminSettingRepository AdminSettings { get; }   // ← নতুন লাইন
 
     void MarkAdded<TEntity>(TEntity entity) where TEntity : class;
 

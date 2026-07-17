@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<ITicketService, TicketService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<IAdminSettingService, AdminSettingService>();
 
         services.AddHostedService<BookingExpiryService>();
 

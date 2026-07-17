@@ -13,7 +13,7 @@ namespace AirplaneSystem.Infrastructure.ExternalServices.FileStorage;
 /// </summary>
 public class LocalFileStorageService : IFileStorageService
 {
-    private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+    private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif", ".ico", ".svg" };
     private const long MaxFileSizeBytes = 5 * 1024 * 1024; // 5 MB
 
     private readonly string _webRootPath;
@@ -35,7 +35,7 @@ public class LocalFileStorageService : IFileStorageService
 
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!AllowedExtensions.Contains(extension))
-            throw new ValidationException("file", "Only image files (jpg, jpeg, png, webp, gif) are allowed.");
+            throw new ValidationException("file", "Only image files (jpg, jpeg, png, webp, gif, ico, svg) are allowed.");
 
         var folderPath = Path.Combine(_webRootPath, "uploads", subFolder);
         Directory.CreateDirectory(folderPath);

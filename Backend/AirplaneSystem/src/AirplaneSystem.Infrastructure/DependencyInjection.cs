@@ -39,7 +39,7 @@ public static class DependencyInjection
         services.AddScoped<IRouteRepository, RouteRepository>();
         services.AddScoped<ITicketRepository, TicketRepository>();
         services.AddScoped<IPromoCodeRepository, PromoCodeRepository>();
-
+        services.AddScoped<IAdminSettingRepository, AdminSettingRepository>();
         // Security
         services.AddSingleton<IEncryptionService, AesEncryptionService>();
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();

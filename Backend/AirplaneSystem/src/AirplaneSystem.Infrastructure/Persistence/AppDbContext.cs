@@ -4,6 +4,7 @@ using AirplaneSystem.Domain.Entities.Audit;
 using AirplaneSystem.Domain.Entities.Booking;
 using AirplaneSystem.Domain.Entities.Flights;
 using AirplaneSystem.Domain.Entities.Payments;
+using AirplaneSystem.Domain.Entities.Settings;
 using AirplaneSystem.Domain.Entities.Tickets;
 using AirplaneSystem.Domain.Entities.Users;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +40,7 @@ public class AppDbContext : DbContext
     public DbSet<Refund> Refunds => Set<Refund>();
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<AdminSetting> AdminSettings => Set<AdminSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
