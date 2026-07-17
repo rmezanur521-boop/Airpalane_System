@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Plane, LayoutDashboard, Calendar, CreditCard, Users,
-  Building2, MapPin, BarChart2, ScrollText, LogOut, X, Shield,
+  Building2, MapPin, BarChart2, ScrollText, LogOut, X, Shield, Settings,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { getInitials } from '@/utils/formatters';
@@ -17,6 +17,7 @@ const adminLinks = [
   { to: '/admin/airports', label: 'Airports',    Icon: MapPin,      adminOnly: true },
   { to: '/admin/reports',  label: 'Reports',     Icon: BarChart2,   adminOnly: true },
   { to: '/admin/audit-logs', label: 'Audit Logs', Icon: ScrollText, adminOnly: true },
+  { to: '/admin/settings', label: 'Settings',    Icon: Settings,    adminOnly: true },
 ];
 
 export default function Sidebar({ open, onClose }) {

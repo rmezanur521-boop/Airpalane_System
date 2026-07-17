@@ -35,6 +35,7 @@ import AirlinesAdminPage  from '@/pages/admin/AirlinesAdminPage';
 import AirportsAdminPage  from '@/pages/admin/AirportsAdminPage';
 import ReportsPage        from '@/pages/admin/ReportsPage';
 import AuditLogsPage      from '@/pages/admin/AuditLogsPage';
+import AdminSettingsPage  from '@/pages/admin/AdminSettings/AdminSettingsPage';
 
 const PASSENGER_ROLES = ['Passenger', 'Admin', 'Agent'];
 const ADMIN_ROLES     = ['Admin', 'Agent'];
@@ -181,6 +182,22 @@ export default function App() {
             element={
               <ProtectedRoute roles={ADMIN_ONLY}>
                 <AdminLayout><AuditLogsPage /></AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/audit-logs"
+            element={
+              <ProtectedRoute roles={ADMIN_ONLY}>
+                <AdminLayout><AuditLogsPage /></AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <ProtectedRoute roles={ADMIN_ONLY}>
+                <AdminLayout><AdminSettingsPage /></AdminLayout>
               </ProtectedRoute>
             }
           />
