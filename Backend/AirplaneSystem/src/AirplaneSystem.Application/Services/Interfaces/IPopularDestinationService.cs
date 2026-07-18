@@ -11,4 +11,5 @@ public interface IPopularDestinationService
     Task<PopularDestinationDto> UpdateAsync(Guid id, UpdatePopularDestinationDto dto, CancellationToken ct = default);
     Task DeleteAsync(Guid id, CancellationToken ct = default);
     Task<string> UploadImageAsync(Guid id, IFormFile file, CancellationToken ct = default);
+    Task ReorderAsync(ReorderRequestDto request, CancellationToken ct = default);
 }

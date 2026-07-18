@@ -82,4 +82,19 @@ public class SpecialOfferService : ISpecialOfferService
         if (!string.IsNullOrWhiteSpace(oldImage)) await _fileStorageService.DeleteAsync(oldImage, ct);
         return entity.OfferImage;
     }
+    public async Task ReorderAsync(ReorderRequestDto request, CancellationToken ct = default)
+    {
+        if (request.Items.Count == 0) return;
+        var ids = request.Items.Select(x => x.Id).ToList();
+        var entities = await _unitOfWork.SpecialOffers.Query()
+            .Where(x => ids.Contains(x.Id))
+            .ToListAsync(ct);
+        var orderMap = request.Items.ToDictionary(x => x.Id, x => x.Order);
+        foreach (var entity in entities)
+        {
+            entity.Priority = orderMap[entity.Id];
+            _unitOfWork.SpecialOffers.Update(entity);
+        }
+        await _unitOfWork.SaveChangesAsync(ct);
+    }
 }

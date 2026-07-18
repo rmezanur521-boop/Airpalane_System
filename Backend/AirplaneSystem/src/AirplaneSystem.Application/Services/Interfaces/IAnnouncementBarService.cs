@@ -9,4 +9,5 @@ public interface IAnnouncementBarService
     Task<AnnouncementBarDto> CreateAsync(CreateAnnouncementBarDto dto, CancellationToken ct = default);
     Task<AnnouncementBarDto> UpdateAsync(Guid id, UpdateAnnouncementBarDto dto, CancellationToken ct = default);
     Task DeleteAsync(Guid id, CancellationToken ct = default);
+    Task ReorderAsync(ReorderRequestDto request, CancellationToken ct = default);
 }

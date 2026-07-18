@@ -81,4 +81,19 @@ public class PopularDestinationService : IPopularDestinationService
         if (!string.IsNullOrWhiteSpace(oldImage)) await _fileStorageService.DeleteAsync(oldImage, ct);
         return entity.Image;
     }
+    public async Task ReorderAsync(ReorderRequestDto request, CancellationToken ct = default)
+    {
+        if (request.Items.Count == 0) return;
+        var ids = request.Items.Select(x => x.Id).ToList();
+        var entities = await _unitOfWork.PopularDestinations.Query()
+            .Where(x => ids.Contains(x.Id))
+            .ToListAsync(ct);
+        var orderMap = request.Items.ToDictionary(x => x.Id, x => x.Order);
+        foreach (var entity in entities)
+        {
+            entity.DisplayOrder = orderMap[entity.Id];
+            _unitOfWork.PopularDestinations.Update(entity);
+        }
+        await _unitOfWork.SaveChangesAsync(ct);
+    }
 }

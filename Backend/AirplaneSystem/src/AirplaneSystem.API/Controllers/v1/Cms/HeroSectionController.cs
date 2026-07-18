@@ -55,4 +55,11 @@ public class HeroSectionController : ControllerBase
         var url = await _service.UploadImageAsync(id, request.File, ct);
         return Ok(new { imageUrl = url });
     }
+    [HttpPut("reorder")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Reorder([FromBody] ReorderRequestDto request, CancellationToken ct)
+    {
+        await _service.ReorderAsync(request, ct);
+        return NoContent();
+    }
 }

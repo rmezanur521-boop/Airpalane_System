@@ -9,4 +9,5 @@ public interface IWhyChooseUsItemService
     Task<WhyChooseUsItemDto> CreateAsync(CreateWhyChooseUsItemDto dto, CancellationToken ct = default);
     Task<WhyChooseUsItemDto> UpdateAsync(Guid id, UpdateWhyChooseUsItemDto dto, CancellationToken ct = default);
     Task DeleteAsync(Guid id, CancellationToken ct = default);
+    Task ReorderAsync(ReorderRequestDto request, CancellationToken ct = default);
 }

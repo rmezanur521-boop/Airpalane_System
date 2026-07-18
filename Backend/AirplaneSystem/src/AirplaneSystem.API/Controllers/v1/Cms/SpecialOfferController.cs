@@ -1,5 +1,6 @@
 ﻿using AirplaneSystem.Application.DTOs.Admin;
 using AirplaneSystem.Application.DTOs.Cms;
+using AirplaneSystem.Application.Services.Implementations;
 using AirplaneSystem.Application.Services.Interfaces;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
@@ -44,4 +45,11 @@ public class SpecialOfferController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadImage(Guid id, [FromForm] UploadFileRequest request, CancellationToken ct)
         => Ok(new { imageUrl = await _service.UploadImageAsync(id, request.File, ct) });
+    [HttpPut("reorder")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Reorder([FromBody] ReorderRequestDto request, CancellationToken ct)
+    {
+        await _service.ReorderAsync(request, ct);
+        return NoContent();
+    }
 }

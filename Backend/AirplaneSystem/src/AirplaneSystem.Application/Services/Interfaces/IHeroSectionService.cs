@@ -11,4 +11,5 @@ public interface IHeroSectionService
     Task<HeroSectionDto> UpdateAsync(Guid id, UpdateHeroSectionDto dto, CancellationToken ct = default);
     Task DeleteAsync(Guid id, CancellationToken ct = default);
     Task<string> UploadImageAsync(Guid id, IFormFile file, CancellationToken ct = default);
+    Task ReorderAsync(ReorderRequestDto request, CancellationToken ct = default);
 }

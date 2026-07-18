@@ -1,5 +1,6 @@
 ﻿using AirplaneSystem.Application.DTOs.Admin;
 using AirplaneSystem.Application.DTOs.Cms;
+using AirplaneSystem.Application.Services.Implementations;
 using AirplaneSystem.Application.Services.Interfaces;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
@@ -37,6 +38,13 @@ public class PopularDestinationController : ControllerBase
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         await _service.DeleteAsync(id, ct);
+        return NoContent();
+    }
+    [HttpPut("reorder")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Reorder([FromBody] ReorderRequestDto request, CancellationToken ct)
+    {
+        await _service.ReorderAsync(request, ct);
         return NoContent();
     }
 

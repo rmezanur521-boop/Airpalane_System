@@ -95,4 +95,23 @@ public class HeroSectionService : IHeroSectionService
 
         return url;
     }
+    public async Task ReorderAsync(ReorderRequestDto request, CancellationToken ct = default)
+    {
+        if (request.Items.Count == 0) return;
+
+        var ids = request.Items.Select(x => x.Id).ToList();
+        var entities = await _unitOfWork.HeroSections.Query()
+            .Where(x => ids.Contains(x.Id))
+            .ToListAsync(ct);
+
+        var orderMap = request.Items.ToDictionary(x => x.Id, x => x.Order);
+
+        foreach (var entity in entities)
+        {
+            entity.DisplayOrder = orderMap[entity.Id];
+            _unitOfWork.HeroSections.Update(entity);
+        }
+
+        await _unitOfWork.SaveChangesAsync(ct);
+    }
 }
