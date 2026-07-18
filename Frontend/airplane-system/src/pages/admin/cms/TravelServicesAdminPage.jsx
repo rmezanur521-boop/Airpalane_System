@@ -4,7 +4,7 @@ import Select from '@/components/ui/Select';
 import CmsCrudPage from '@/components/cms/CmsCrudPage';
 import travelServiceService from '@/api/cms/travelServiceService';
 
-const EMPTY = { serviceName: '', icon: '', redirectUrl: '', isExternal: false, status: 'Active' };
+const EMPTY = { serviceName: '', description: '', icon: '', redirectUrl: '', isExternal: false, status: 'Active' };
 const STATUS_OPTIONS = [
   { value: 'Active', label: 'Active' },
   { value: 'Inactive', label: 'Inactive' },
@@ -13,7 +13,9 @@ const STATUS_OPTIONS = [
 export default function TravelServicesAdminPage() {
   const columns = [
     { key: 'serviceName', header: 'Service' },
-    { key: 'icon', header: 'Icon' },
+    { key: 'description', header: 'Description', render: (r) => (
+        <span className="text-slate-500 line-clamp-1 max-w-xs block">{r.description || '—'}</span>
+      ) },
     { key: 'redirectUrl', header: 'Redirect URL' },
     {
       key: 'status', header: 'Status',
@@ -37,6 +39,11 @@ export default function TravelServicesAdminPage() {
       renderForm={({ form, setField }) => (
         <>
           <Input label="Service Name" value={form.serviceName} onChange={setField('serviceName')} required />
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-slate-700">Description</label>
+            <textarea rows={3} className="input-base resize-none" value={form.description}
+              onChange={setField('description')} placeholder="Short description shown under the service title" />
+          </div>
           <Input label="Icon (e.g. fa-suitcase)" value={form.icon} onChange={setField('icon')} />
           <Input label="Redirect URL" value={form.redirectUrl} onChange={setField('redirectUrl')} maxLength={500} />
           <div className="grid grid-cols-2 gap-4 items-end">

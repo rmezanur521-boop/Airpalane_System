@@ -5,13 +5,14 @@ import homepageService from '@/api/cms/homepageService';
 const CmsContext = createContext(null);
 
 export function CmsProvider({ children }) {
-  const [data, setData]       = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData]           = useState(null);
+  const [loading, setLoading]     = useState(true);
+  const [cacheBust, setCacheBust] = useState(Date.now());
 
   const load = useCallback(() => {
     setLoading(true);
     homepageService.get()
-      .then(({ data }) => setData(data))
+      .then(({ data }) => { setData(data); setCacheBust(Date.now()); })
       .catch(() => setData(null))
       .finally(() => setLoading(false));
   }, []);
@@ -19,7 +20,7 @@ export function CmsProvider({ children }) {
   useEffect(load, [load]);
 
   return (
-    <CmsContext.Provider value={{ ...data, loading, reload: load }}>
+    <CmsContext.Provider value={{ ...data, loading, reload: load, cacheBust }}>
       {children}
     </CmsContext.Provider>
   );

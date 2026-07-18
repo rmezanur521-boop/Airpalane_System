@@ -10,6 +10,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { getInitials } from '@/utils/formatters';
 import toast from 'react-hot-toast';
 
+import { useCms } from '@/context/CmsContext';
+import { buildCmsImageUrl } from '@/api/cms/cmsHelpers';
+
 const adminLinks = [
   { to: '/admin',          label: 'Dashboard',   Icon: LayoutDashboard, exact: true },
   { to: '/admin/flights',  label: 'Flights',     Icon: Plane },
@@ -39,9 +42,14 @@ const bottomLinks = [
 
 export default function Sidebar({ open, onClose }) {
   const { user, logout, isAdmin } = useAuth();
+  const { navbar, cacheBust }     = useCms(); // ← নতুন
   const navigate = useNavigate();
   const location = useLocation();
   const [cmsOpen, setCmsOpen] = useState(location.pathname.startsWith('/admin/cms'));
+
+  const brandName = navbar?.companyName || 'AirSystem';
+  const logoUrl   = buildCmsImageUrl(navbar?.logo, cacheBust);
+
 
   const handleLogout = async () => {
     await logout();
@@ -59,9 +67,11 @@ export default function Sidebar({ open, onClose }) {
   const content = (
     <aside className="flex flex-col h-full bg-slate-900 text-white w-64">
       <div className="flex items-center justify-between px-6 py-5 border-b border-slate-700">
-        <div className="flex items-center gap-2">
-          <Plane className="h-6 w-6 text-brand-400" />
-          <span className="font-bold text-lg">AirSystem</span>
+        <div className="flex items-center gap-2 min-w-0">
+          {logoUrl
+            ? <img src={logoUrl} alt={brandName} className="h-7 w-auto object-contain flex-shrink-0" />
+            : <Plane className="h-6 w-6 text-brand-400 flex-shrink-0" />}
+          <span className="font-bold text-lg truncate">{brandName}</span>
         </div>
         <button onClick={onClose} className="lg:hidden p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition">
           <X className="h-5 w-5" />

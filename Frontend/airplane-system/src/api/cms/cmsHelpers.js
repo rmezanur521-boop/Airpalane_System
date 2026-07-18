@@ -49,9 +49,17 @@ export function extractCmsError(err) {
   );
 }
 
-export function buildCmsImageUrl(path) {
+// export function buildCmsImageUrl(path) {
+//   if (!path) return "";
+//   if (path.startsWith("http")) return path;
+//   const host = import.meta.env.VITE_API_HOST ?? "";
+//   return `${host}${path}`;
+// }
+export function buildCmsImageUrl(path, version) {
   if (!path) return "";
-  if (path.startsWith("http")) return path;
   const host = import.meta.env.VITE_API_HOST ?? "";
-  return `${host}${path}`;
+  const base = path.startsWith("http") ? path : `${host}${path}`;
+  return version
+    ? `${base}${base.includes("?") ? "&" : "?"}v=${version}`
+    : base;
 }

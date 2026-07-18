@@ -1,5 +1,5 @@
 // src/components/layout/Navbar.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; 
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
   Plane, Menu, X, User, LogOut, Ticket,
@@ -23,6 +23,14 @@ export default function Navbar() {
   const navigate                            = useNavigate();
   const [menuOpen, setMenuOpen]             = useState(false);
   const [dropOpen, setDropOpen]             = useState(false);
+  const [scrolled, setScrolled]             = useState(false);
+  
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const companyName = navbar?.companyName || 'AirSystem';
   const logoUrl      = buildCmsImageUrl(navbar?.logo);
@@ -38,7 +46,8 @@ export default function Navbar() {
   const visibleLinks = navLinks.filter((l) => !l.auth || user);
 
   return (
-    <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
+    <nav className={`sticky top-0 z-40 backdrop-blur-md transition-all duration-300
+      ${scrolled ? 'bg-white/95 shadow-md border-b border-slate-100' : 'bg-white/70 border-b border-transparent'}`}>
       <div className="page-container">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
