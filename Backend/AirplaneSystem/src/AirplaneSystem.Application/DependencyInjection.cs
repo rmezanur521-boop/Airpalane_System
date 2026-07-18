@@ -24,9 +24,18 @@ public static class DependencyInjection
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IAdminSettingService, AdminSettingService>();
-
+        services.AddScoped<IHeroSectionService, HeroSectionService>();
+        services.AddScoped<INavbarSettingService, NavbarSettingService>();
+        services.AddScoped<IFooterSettingService, FooterSettingService>();
+        services.AddScoped<IHomepageSettingService, HomepageSettingService>();
         services.AddHostedService<BookingExpiryService>();
-
+        services.AddScoped<ISpecialOfferService, SpecialOfferService>();
+        services.AddScoped<IPopularDestinationService, PopularDestinationService>();
+        services.AddScoped<IWhyChooseUsItemService, WhyChooseUsItemService>();
+        services.AddScoped<IFleetItemService, FleetItemService>();
+        services.AddScoped<ITravelServiceService, TravelServiceService>();
+        services.AddScoped<IAnnouncementBarService, AnnouncementBarService>();
+        services.AddScoped<IHomepageService, HomepageService>();
         return services;
     }
 }

@@ -6,7 +6,7 @@ using AirplaneSystem.Domain.Enums;
 using AirplaneSystem.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
+using AirplaneSystem.Domain.Entities.Cms;
 namespace AirplaneSystem.Infrastructure.Seeds;
 
 public static class DatabaseSeeder
@@ -17,6 +17,9 @@ public static class DatabaseSeeder
         // 👇 নতুন: AdminSettings Seed — Airports-এর Early Return এর ওপরে রাখা হলো
         //    যাতে এটা প্রতিবার App Start-এ চেক হয়, এমনকি বাকি Data আগে থেকেই থাকলেও।
         await SeedAdminSettingsAsync(context, logger);
+
+        // 👇 CMS Singleton Rows (Navbar/Footer/Homepage) — একই কারণে Early Return-এর আগে রাখা হলো
+        await SeedCmsSingletonsAsync(context, logger);
 
         if (await context.Airports.AnyAsync()) return;
 
@@ -53,6 +56,28 @@ public static class DatabaseSeeder
         await context.SaveChangesAsync();
 
         logger.LogInformation("Default AdminSettings row created.");
+    }
+    private static async Task SeedCmsSingletonsAsync(AppDbContext context, ILogger logger)
+    {
+        if (!await context.NavbarSettings.AnyAsync())
+        {
+            context.NavbarSettings.Add(new NavbarSetting { CompanyName = "AirplaneSystem" });
+            logger.LogInformation("Seeded default NavbarSetting");
+        }
+
+        if (!await context.FooterSettings.AnyAsync())
+        {
+            context.FooterSettings.Add(new FooterSetting());
+            logger.LogInformation("Seeded default FooterSetting");
+        }
+
+        if (!await context.HomepageSettings.AnyAsync())
+        {
+            context.HomepageSettings.Add(new HomepageSetting());
+            logger.LogInformation("Seeded default HomepageSetting");
+        }
+
+        await context.SaveChangesAsync();
     }
     private static async Task SeedAirportsAsync(AppDbContext context)
     {

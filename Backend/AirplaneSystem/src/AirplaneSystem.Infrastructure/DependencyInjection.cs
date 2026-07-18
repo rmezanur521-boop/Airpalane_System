@@ -40,6 +40,16 @@ public static class DependencyInjection
         services.AddScoped<ITicketRepository, TicketRepository>();
         services.AddScoped<IPromoCodeRepository, PromoCodeRepository>();
         services.AddScoped<IAdminSettingRepository, AdminSettingRepository>();
+        services.AddScoped<IHeroSectionRepository, HeroSectionRepository>();
+        services.AddScoped<INavbarSettingRepository, NavbarSettingRepository>();
+        services.AddScoped<IFooterSettingRepository, FooterSettingRepository>();
+        services.AddScoped<IHomepageSettingRepository, HomepageSettingRepository>();
+        services.AddScoped<ISpecialOfferRepository, SpecialOfferRepository>();
+        services.AddScoped<IPopularDestinationRepository, PopularDestinationRepository>();
+        services.AddScoped<IWhyChooseUsItemRepository, WhyChooseUsItemRepository>();
+        services.AddScoped<IFleetItemRepository, FleetItemRepository>();
+        services.AddScoped<ITravelServiceRepository, TravelServiceRepository>();
+        services.AddScoped<IAnnouncementBarRepository, AnnouncementBarRepository>();
         // Security
         services.AddSingleton<IEncryptionService, AesEncryptionService>();
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();

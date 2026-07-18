@@ -13,7 +13,16 @@ public interface IUnitOfWork : IDisposable
     IPromoCodeRepository PromoCodes { get; }
     IAuditLogRepository AuditLogs { get; }
     IAdminSettingRepository AdminSettings { get; }   // ← নতুন লাইন
-
+    IHeroSectionRepository HeroSections { get; }
+    INavbarSettingRepository NavbarSettings { get; }
+    IFooterSettingRepository FooterSettings { get; }
+    IHomepageSettingRepository HomepageSettings { get; }
+    ISpecialOfferRepository SpecialOffers { get; }
+    IPopularDestinationRepository PopularDestinations { get; }
+    IWhyChooseUsItemRepository WhyChooseUsItems { get; }
+    IFleetItemRepository FleetItems { get; }
+    ITravelServiceRepository TravelServices { get; }
+    IAnnouncementBarRepository AnnouncementBars { get; }
     void MarkAdded<TEntity>(TEntity entity) where TEntity : class;
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);

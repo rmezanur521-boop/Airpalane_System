@@ -2,6 +2,7 @@ using AirplaneSystem.Application.Common.Interfaces;
 using AirplaneSystem.Domain.Common;
 using AirplaneSystem.Domain.Entities.Audit;
 using AirplaneSystem.Domain.Entities.Booking;
+using AirplaneSystem.Domain.Entities.Cms;
 using AirplaneSystem.Domain.Entities.Flights;
 using AirplaneSystem.Domain.Entities.Payments;
 using AirplaneSystem.Domain.Entities.Settings;
@@ -41,7 +42,16 @@ public class AppDbContext : DbContext
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<AdminSetting> AdminSettings => Set<AdminSetting>();
-
+    public DbSet<HeroSection> HeroSections => Set<HeroSection>();
+    public DbSet<SpecialOffer> SpecialOffers => Set<SpecialOffer>();
+    public DbSet<PopularDestination> PopularDestinations => Set<PopularDestination>();
+    public DbSet<WhyChooseUsItem> WhyChooseUsItems => Set<WhyChooseUsItem>();
+    public DbSet<FleetItem> FleetItems => Set<FleetItem>();
+    public DbSet<TravelService> TravelServices => Set<TravelService>();
+    public DbSet<NavbarSetting> NavbarSettings => Set<NavbarSetting>();
+    public DbSet<FooterSetting> FooterSettings => Set<FooterSetting>();
+    public DbSet<HomepageSetting> HomepageSettings => Set<HomepageSetting>();
+    public DbSet<AnnouncementBar> AnnouncementBars => Set<AnnouncementBar>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
@@ -50,7 +60,13 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Flight>().HasQueryFilter(e => !e.IsDeleted);
         modelBuilder.Entity<Booking>().HasQueryFilter(e => !e.IsDeleted);
-
+        modelBuilder.Entity<HeroSection>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<SpecialOffer>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<PopularDestination>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<WhyChooseUsItem>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<FleetItem>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<TravelService>().HasQueryFilter(e => !e.IsDeleted);
+        modelBuilder.Entity<AnnouncementBar>().HasQueryFilter(e => !e.IsDeleted);
         base.OnModelCreating(modelBuilder);
     }
 

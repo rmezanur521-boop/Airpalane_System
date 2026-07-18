@@ -20,6 +20,16 @@ public class UnitOfWork : IUnitOfWork
     private IPromoCodeRepository? _promoCodes;
     private IAuditLogRepository? _auditLogs;
     private IAdminSettingRepository? _adminSettings;
+    private IHeroSectionRepository? _heroSections;
+    private INavbarSettingRepository? _navbarSettings;
+    private IFooterSettingRepository? _footerSettings;
+    private IHomepageSettingRepository? _homepageSettings;
+    private ISpecialOfferRepository? _specialOffers;
+    private IPopularDestinationRepository? _popularDestinations;
+    private IWhyChooseUsItemRepository? _whyChooseUsItems;
+    private IFleetItemRepository? _fleetItems;
+    private ITravelServiceRepository? _travelServices;
+    private IAnnouncementBarRepository? _announcementBars;
     public UnitOfWork(AppDbContext context) => _context = context;
 
     public IUserRepository Users => _users ??= new UserRepository(_context);
@@ -33,7 +43,16 @@ public class UnitOfWork : IUnitOfWork
     public IPromoCodeRepository PromoCodes => _promoCodes ??= new PromoCodeRepository(_context);
     public IAuditLogRepository AuditLogs => _auditLogs ??= new AuditLogRepository(_context);
     public IAdminSettingRepository AdminSettings => _adminSettings ??= new AdminSettingRepository(_context);
-
+    public IHeroSectionRepository HeroSections => _heroSections ??= new HeroSectionRepository(_context);
+    public INavbarSettingRepository NavbarSettings => _navbarSettings ??= new NavbarSettingRepository(_context);
+    public IFooterSettingRepository FooterSettings => _footerSettings ??= new FooterSettingRepository(_context);
+    public IHomepageSettingRepository HomepageSettings => _homepageSettings ??= new HomepageSettingRepository(_context);
+    public ISpecialOfferRepository SpecialOffers => _specialOffers ??= new SpecialOfferRepository(_context);
+    public IPopularDestinationRepository PopularDestinations => _popularDestinations ??= new PopularDestinationRepository(_context);
+    public IWhyChooseUsItemRepository WhyChooseUsItems => _whyChooseUsItems ??= new WhyChooseUsItemRepository(_context);
+    public IFleetItemRepository FleetItems => _fleetItems ??= new FleetItemRepository(_context);
+    public ITravelServiceRepository TravelServices => _travelServices ??= new TravelServiceRepository(_context);
+    public IAnnouncementBarRepository AnnouncementBars => _announcementBars ??= new AnnouncementBarRepository(_context);
     public void MarkAdded<TEntity>(TEntity entity) where TEntity : class
     {
         var entry = _context.Entry(entity);
