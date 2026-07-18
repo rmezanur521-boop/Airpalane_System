@@ -1,6 +1,8 @@
+// src/App.jsx
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/context/AuthContext';
+import { CmsProvider } from '@/context/CmsContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import AdminLayout from '@/components/layout/AdminLayout';
 
@@ -37,6 +39,16 @@ import ReportsPage        from '@/pages/admin/ReportsPage';
 import AuditLogsPage      from '@/pages/admin/AuditLogsPage';
 import AdminSettingsPage  from '@/pages/admin/AdminSettings/AdminSettingsPage';
 
+// Website CMS pages
+import HeroAdminPage              from '@/pages/admin/cms/HeroAdminPage';
+import SpecialOffersAdminPage     from '@/pages/admin/cms/SpecialOffersAdminPage';
+import PopularDestinationsAdminPage from '@/pages/admin/cms/PopularDestinationsAdminPage';
+import WhyChooseUsAdminPage       from '@/pages/admin/cms/WhyChooseUsAdminPage';
+import FleetAdminPage             from '@/pages/admin/cms/FleetAdminPage';
+import TravelServicesAdminPage    from '@/pages/admin/cms/TravelServicesAdminPage';
+import AnnouncementBarAdminPage   from '@/pages/admin/cms/AnnouncementBarAdminPage';
+import WebsiteSettingsPage        from '@/pages/admin/cms/WebsiteSettingsPage';
+
 const PASSENGER_ROLES = ['Passenger', 'Admin', 'Agent'];
 const ADMIN_ROLES     = ['Admin', 'Agent'];
 const ADMIN_ONLY      = ['Admin'];
@@ -49,164 +61,73 @@ function AdminRoute({ children }) {
   );
 }
 
+function AdminOnlyRoute({ children }) {
+  return (
+    <ProtectedRoute roles={ADMIN_ONLY}>
+      <AdminLayout>{children}</AdminLayout>
+    </ProtectedRoute>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 3500,
-            style: {
-              borderRadius: '12px',
-              background: '#1e293b',
-              color: '#f8fafc',
-              fontSize: '14px',
-            },
-          }}
-        />
-        <Routes>
-          {/* ── Public ──────────────────────────────────────────────── */}
-          <Route path="/"             element={<HomePage />} />
-          <Route path="/search"       element={<SearchResultsPage />} />
-          <Route path="/login"        element={<LoginPage />} />
-          <Route path="/register"     element={<RegisterPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password"  element={<ResetPasswordPage />} />
-          <Route path="/verify-email"    element={<VerifyEmailPage />} />
+      <CmsProvider>
+        <AuthProvider>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3500,
+              style: { borderRadius: '12px', background: '#1e293b', color: '#f8fafc', fontSize: '14px' },
+            }}
+          />
+          <Routes>
+            {/* ── Public ──────────────────────────────────────────────── */}
+            <Route path="/"             element={<HomePage />} />
+            <Route path="/search"       element={<SearchResultsPage />} />
+            <Route path="/login"        element={<LoginPage />} />
+            <Route path="/register"     element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password"  element={<ResetPasswordPage />} />
+            <Route path="/verify-email"    element={<VerifyEmailPage />} />
 
-          {/* ── Passenger ───────────────────────────────────────────── */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute roles={PASSENGER_ROLES}>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/book"
-            element={
-              <ProtectedRoute roles={PASSENGER_ROLES}>
-                <BookingFlowPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bookings"
-            element={
-              <ProtectedRoute roles={PASSENGER_ROLES}>
-                <MyBookingsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bookings/:id"
-            element={
-              <ProtectedRoute roles={PASSENGER_ROLES}>
-                <BookingDetailPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tickets"
-            element={
-              <ProtectedRoute roles={PASSENGER_ROLES}>
-                <MyTicketsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tickets/:ticketNumber"
-            element={
-              <ProtectedRoute roles={PASSENGER_ROLES}>
-                <TicketDetailPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute roles={PASSENGER_ROLES}>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
+            {/* ── Passenger ───────────────────────────────────────────── */}
+            <Route path="/dashboard" element={<ProtectedRoute roles={PASSENGER_ROLES}><DashboardPage /></ProtectedRoute>} />
+            <Route path="/book" element={<ProtectedRoute roles={PASSENGER_ROLES}><BookingFlowPage /></ProtectedRoute>} />
+            <Route path="/bookings" element={<ProtectedRoute roles={PASSENGER_ROLES}><MyBookingsPage /></ProtectedRoute>} />
+            <Route path="/bookings/:id" element={<ProtectedRoute roles={PASSENGER_ROLES}><BookingDetailPage /></ProtectedRoute>} />
+            <Route path="/tickets" element={<ProtectedRoute roles={PASSENGER_ROLES}><MyTicketsPage /></ProtectedRoute>} />
+            <Route path="/tickets/:ticketNumber" element={<ProtectedRoute roles={PASSENGER_ROLES}><TicketDetailPage /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute roles={PASSENGER_ROLES}><ProfilePage /></ProtectedRoute>} />
 
-          {/* ── Admin ───────────────────────────────────────────────── */}
-          <Route path="/admin"              element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
-          <Route path="/admin/flights"      element={<AdminRoute><FlightsPage /></AdminRoute>} />
-          <Route path="/admin/bookings"     element={<AdminRoute><BookingsAdminPage /></AdminRoute>} />
-          <Route
-            path="/admin/payments"
-            element={
-              <ProtectedRoute roles={ADMIN_ONLY}>
-                <AdminLayout><PaymentsAdminPage /></AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={
-              <ProtectedRoute roles={ADMIN_ONLY}>
-                <AdminLayout><UsersAdminPage /></AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/airlines"
-            element={
-              <ProtectedRoute roles={ADMIN_ONLY}>
-                <AdminLayout><AirlinesAdminPage /></AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/airports"
-            element={
-              <ProtectedRoute roles={ADMIN_ONLY}>
-                <AdminLayout><AirportsAdminPage /></AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/reports"
-            element={
-              <ProtectedRoute roles={ADMIN_ONLY}>
-                <AdminLayout><ReportsPage /></AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/audit-logs"
-            element={
-              <ProtectedRoute roles={ADMIN_ONLY}>
-                <AdminLayout><AuditLogsPage /></AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/audit-logs"
-            element={
-              <ProtectedRoute roles={ADMIN_ONLY}>
-                <AdminLayout><AuditLogsPage /></AdminLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/settings"
-            element={
-              <ProtectedRoute roles={ADMIN_ONLY}>
-                <AdminLayout><AdminSettingsPage /></AdminLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* ── Admin ───────────────────────────────────────────────── */}
+            <Route path="/admin"              element={<AdminRoute><AdminDashboardPage /></AdminRoute>} />
+            <Route path="/admin/flights"      element={<AdminRoute><FlightsPage /></AdminRoute>} />
+            <Route path="/admin/bookings"     element={<AdminRoute><BookingsAdminPage /></AdminRoute>} />
+            <Route path="/admin/payments"     element={<AdminOnlyRoute><PaymentsAdminPage /></AdminOnlyRoute>} />
+            <Route path="/admin/users"        element={<AdminOnlyRoute><UsersAdminPage /></AdminOnlyRoute>} />
+            <Route path="/admin/airlines"     element={<AdminOnlyRoute><AirlinesAdminPage /></AdminOnlyRoute>} />
+            <Route path="/admin/airports"     element={<AdminOnlyRoute><AirportsAdminPage /></AdminOnlyRoute>} />
+            <Route path="/admin/reports"      element={<AdminOnlyRoute><ReportsPage /></AdminOnlyRoute>} />
+            <Route path="/admin/audit-logs"   element={<AdminOnlyRoute><AuditLogsPage /></AdminOnlyRoute>} />
+            <Route path="/admin/settings"     element={<AdminOnlyRoute><AdminSettingsPage /></AdminOnlyRoute>} />
 
-          {/* ── Fallbacks ───────────────────────────────────────────── */}
-          <Route path="/404" element={<NotFoundPage />} />
-          <Route path="*"    element={<Navigate to="/404" replace />} />
-        </Routes>
-      </AuthProvider>
+            {/* ── Website CMS ─────────────────────────────────────────── */}
+            <Route path="/admin/cms/hero"             element={<AdminOnlyRoute><HeroAdminPage /></AdminOnlyRoute>} />
+            <Route path="/admin/cms/offers"           element={<AdminOnlyRoute><SpecialOffersAdminPage /></AdminOnlyRoute>} />
+            <Route path="/admin/cms/destinations"     element={<AdminOnlyRoute><PopularDestinationsAdminPage /></AdminOnlyRoute>} />
+            <Route path="/admin/cms/why-choose-us"    element={<AdminOnlyRoute><WhyChooseUsAdminPage /></AdminOnlyRoute>} />
+            <Route path="/admin/cms/fleet"            element={<AdminOnlyRoute><FleetAdminPage /></AdminOnlyRoute>} />
+            <Route path="/admin/cms/services"         element={<AdminOnlyRoute><TravelServicesAdminPage /></AdminOnlyRoute>} />
+            <Route path="/admin/cms/announcements"    element={<AdminOnlyRoute><AnnouncementBarAdminPage /></AdminOnlyRoute>} />
+            <Route path="/admin/cms/website-settings" element={<AdminOnlyRoute><WebsiteSettingsPage /></AdminOnlyRoute>} />
+
+            {/* ── Fallbacks ───────────────────────────────────────────── */}
+            <Route path="/404" element={<NotFoundPage />} />
+            <Route path="*"    element={<Navigate to="/404" replace />} />
+          </Routes>
+        </AuthProvider>
+      </CmsProvider>
     </BrowserRouter>
   );
 }
