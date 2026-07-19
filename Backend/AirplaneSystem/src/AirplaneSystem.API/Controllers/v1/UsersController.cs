@@ -1,3 +1,4 @@
+﻿using AirplaneSystem.Application.Common.Interfaces;
 using AirplaneSystem.Application.Common.Models;
 using AirplaneSystem.Application.DTOs.Users;
 using AirplaneSystem.Application.Services.Interfaces;
@@ -14,8 +15,20 @@ namespace AirplaneSystem.API.Controllers.v1;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IFileStorageService _fileStorage; // শুধুমাত্র প্রয়োজন হলে; না লাগলে বাদ দিন
 
-    public UsersController(IUserService userService) => _userService = userService;
+    public UsersController(IUserService userService)
+        => _userService = userService;
+
+    [HttpPost("profile/image")]
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> UploadProfileImage(IFormFile file, CancellationToken ct)
+    {
+        var userId = GetUserId();
+        var result = await _userService.UpdateProfileImageAsync(userId, file, ct);
+        return Ok(result);
+    }
+    //public UsersController(IUserService userService) => _userService = userService;
 
     [HttpGet("profile")]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]

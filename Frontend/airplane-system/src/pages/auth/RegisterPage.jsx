@@ -12,6 +12,31 @@ const INITIAL = {
   password: '', phoneNumber: '', dateOfBirth: '', nationality: '',
 };
 
+// ISO 2-letter country codes — backend requires 2-3 letter ISO code, not full name
+const COUNTRY_OPTIONS = [
+  { code: 'BD', name: 'Bangladesh' },
+  { code: 'US', name: 'United States' },
+  { code: 'GB', name: 'United Kingdom' },
+  { code: 'IN', name: 'India' },
+  { code: 'PK', name: 'Pakistan' },
+  { code: 'CA', name: 'Canada' },
+  { code: 'AU', name: 'Australia' },
+  { code: 'AE', name: 'United Arab Emirates' },
+  { code: 'SA', name: 'Saudi Arabia' },
+  { code: 'MY', name: 'Malaysia' },
+  { code: 'SG', name: 'Singapore' },
+];
+
+// Converts a local BD number (or any raw input) into E.164 format the backend expects.
+// If the user already typed a leading "+", we respect their country code instead.
+const toE164 = (raw) => {
+  const trimmed = raw.trim();
+  const digits = trimmed.replace(/\D/g, '');
+  if (trimmed.startsWith('+')) return `+${digits}`;
+  const withoutLeadingZero = digits.startsWith('0') ? digits.slice(1) : digits;
+  return `+880${withoutLeadingZero}`;
+};
+
 export default function RegisterPage() {
   const { register }           = useAuth();
   const navigate               = useNavigate();
@@ -28,7 +53,11 @@ export default function RegisterPage() {
     setError('');
     setLoading(true);
     try {
-      await register(form);
+      const payload = {
+        ...form,
+        phoneNumber: toE164(form.phoneNumber),
+      };
+      await register(payload);
       toast.success('Account created! Welcome aboard.');
       navigate('/dashboard', { replace: true });
     } catch (err) {
@@ -118,7 +147,8 @@ export default function RegisterPage() {
                 name="phoneNumber"
                 value={form.phoneNumber}
                 onChange={handleChange}
-                placeholder="+1 555 000 0000"
+                placeholder="01XXXXXXXXX"
+                required
               />
               <Input
                 label="Date of birth"
@@ -130,13 +160,21 @@ export default function RegisterPage() {
               />
             </div>
 
-            <Input
-              label="Nationality"
-              name="nationality"
-              value={form.nationality}
-              onChange={handleChange}
-              placeholder="e.g. American"
-            />
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-medium text-slate-700">Nationality</label>
+              <select
+                name="nationality"
+                value={form.nationality}
+                onChange={handleChange}
+                required
+                className="input-base"
+              >
+                <option value="">Select country</option>
+                {COUNTRY_OPTIONS.map((c) => (
+                  <option key={c.code} value={c.code}>{c.name}</option>
+                ))}
+              </select>
+            </div>
 
             <Button type="submit" loading={loading} className="w-full mt-2">
               Create Account

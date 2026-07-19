@@ -73,7 +73,7 @@ export default function HomePage() {
     <PageWrapper>
       {/* ── Hero — Qatar Airways-inspired glass search card ───────────── */}
       <section className="relative bg-gradient-to-br from-brand-800 via-brand-600 to-sky-500">
-  {/* background layer — নিজের মধ্যেই clip হবে, card-কে প্রভাবিত করবে না */}
+  
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     {heroBg && (
       <div className="absolute inset-0 bg-cover bg-center scale-105" style={{ backgroundImage: `url(${heroBg})` }} />
@@ -196,7 +196,7 @@ export default function HomePage() {
       </section>
 
       {/* floating card ছাড়িয়ে নিচের সেকশন যেন হেরোর সাথে ওভারল্যাপ না করে, তাই একটা spacer */}
-      <div className="h-40 md:h-44" />
+      {/* <div className="h-40 md:h-44" /> */}
 
       {cms.loading ? (
         <>

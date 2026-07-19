@@ -31,7 +31,7 @@ public class StripePaymentService : IPaymentService
     public StripePaymentService(IUnitOfWork uow, IMapper mapper, IConfiguration config,
     ILogger<StripePaymentService> logger, IEncryptionService encryption,
     ITicketService ticketService, INotificationService notification,
-    IHttpContextAccessor httpContextAccessor)                  
+    IHttpContextAccessor httpContextAccessor)
     {
         _uow = uow;
         _mapper = mapper;
@@ -40,9 +40,26 @@ public class StripePaymentService : IPaymentService
         _encryption = encryption;
         _ticketService = ticketService;
         _notification = notification;
-        _httpContextAccessor = httpContextAccessor;                
+        _httpContextAccessor = httpContextAccessor;
 
-        InitializeStripe();
+        // InitializeStripe(); ← constructor থেকে সরিয়ে ফেলুন
+    }
+
+    private bool _stripeInitialized;
+    private readonly object _stripeInitLock = new();
+
+    private void EnsureStripeInitialized()
+    {
+        if (_stripeInitialized) return;
+        lock (_stripeInitLock)
+        {
+            if (_stripeInitialized) return;
+
+            var secretKeyRaw = _config["Stripe:SecretKey"] ?? string.Empty;
+            var secretKey = _encryption.IsEncrypted(secretKeyRaw) ? _encryption.Decrypt(secretKeyRaw) : secretKeyRaw;
+            StripeConfiguration.ApiKey = secretKey;
+            _stripeInitialized = true;
+        }
     }
     private void InitializeStripe()
     {
@@ -53,6 +70,7 @@ public class StripePaymentService : IPaymentService
 
     public async Task<PaymentIntentResult> CreatePaymentIntentAsync(Guid bookingId, CancellationToken ct = default)
     {
+        EnsureStripeInitialized();
         var booking = await _uow.Bookings.GetWithDetailsAsync(bookingId, ct)
             ?? throw new NotFoundException("Booking", bookingId);
 
@@ -104,6 +122,7 @@ public class StripePaymentService : IPaymentService
 
     public async Task<PaymentDto> ConfirmPaymentAsync(string paymentIntentId, CancellationToken ct = default)
     {
+        EnsureStripeInitialized();
         var service = new PaymentIntentService();
         var intent = await service.GetAsync(paymentIntentId, cancellationToken: ct);
 
@@ -170,6 +189,7 @@ public class StripePaymentService : IPaymentService
 
     public async Task ProcessWebhookAsync(string payload, string signature, CancellationToken ct = default)
     {
+        EnsureStripeInitialized();
         var webhookSecretRaw = _config["Stripe:WebhookSecret"] ?? string.Empty;
         var webhookSecret = _encryption.IsEncrypted(webhookSecretRaw) ? _encryption.Decrypt(webhookSecretRaw) : webhookSecretRaw;
 
@@ -214,6 +234,7 @@ public class StripePaymentService : IPaymentService
 
     public async Task<RefundDto> ProcessRefundAsync(Guid refundId, bool approve, string? denialReason, CancellationToken ct = default)
     {
+        EnsureStripeInitialized();
         var allPayments = await _uow.Payments.GetAllAsync(ct);
         var refund = allPayments.SelectMany(p => p.Refunds).FirstOrDefault(r => r.Id == refundId)
             ?? throw new NotFoundException("Refund", refundId);
