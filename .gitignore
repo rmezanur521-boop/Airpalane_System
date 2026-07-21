@@ -57,3 +57,5 @@ desktop.ini
 
 ## Docker
 docker-compose.override.yml
+k_test_
+h origin main --force-with-lease
