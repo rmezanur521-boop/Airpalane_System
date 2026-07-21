@@ -1,4 +1,3 @@
-// src/components/layout/Sidebar.jsx
 import { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -9,6 +8,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { getInitials } from '@/utils/formatters';
 import toast from 'react-hot-toast';
+import { KeyRound } from 'lucide-react';
 
 import { useCms } from '@/context/CmsContext';
 import { buildCmsImageUrl } from '@/api/cms/cmsHelpers';
@@ -32,6 +32,7 @@ const cmsLinks = [
   { to: '/admin/cms/services',       label: 'Travel Services',     Icon: Briefcase },
   { to: '/admin/cms/announcements',  label: 'Announcement Bar',    Icon: Megaphone },
   { to: '/admin/cms/website-settings', label: 'Website Settings', Icon: SlidersHorizontal },
+  { to: '/admin/cms/payment-gateways', label: 'Payment Gateways', Icon: KeyRound },
 ];
 
 const bottomLinks = [

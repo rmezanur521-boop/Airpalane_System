@@ -2,7 +2,6 @@
 using AirplaneSystem.Application.Common.Models;
 using AirplaneSystem.Application.DTOs.Payments;
 using AirplaneSystem.Application.Exceptions;
-using AirplaneSystem.Application.Repositories;
 using AirplaneSystem.Application.Services.Interfaces;
 using AirplaneSystem.Domain.Entities.Payments;
 using AirplaneSystem.Domain.Enums;
@@ -13,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Stripe;
 using DomainRefund = AirplaneSystem.Domain.Entities.Payments.Refund;
 using PaymentStatus = AirplaneSystem.Domain.Enums.PaymentStatus;
-using StripeEvents = Stripe.Events;
 
 namespace AirplaneSystem.Infrastructure.ExternalServices.Stripe;
 
@@ -27,11 +25,12 @@ public class StripePaymentService : IPaymentService
     private readonly ITicketService _ticketService;
     private readonly INotificationService _notification;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IPaymentGatewaySettingService _gatewaySettingService;
 
     public StripePaymentService(IUnitOfWork uow, IMapper mapper, IConfiguration config,
     ILogger<StripePaymentService> logger, IEncryptionService encryption,
     ITicketService ticketService, INotificationService notification,
-    IHttpContextAccessor httpContextAccessor)
+    IHttpContextAccessor httpContextAccessor, IPaymentGatewaySettingService gatewaySettingService)
     {
         _uow = uow;
         _mapper = mapper;
@@ -41,6 +40,7 @@ public class StripePaymentService : IPaymentService
         _ticketService = ticketService;
         _notification = notification;
         _httpContextAccessor = httpContextAccessor;
+        _gatewaySettingService = gatewaySettingService;
 
         // InitializeStripe(); ← constructor থেকে সরিয়ে ফেলুন
     }
@@ -48,18 +48,22 @@ public class StripePaymentService : IPaymentService
     private bool _stripeInitialized;
     private readonly object _stripeInitLock = new();
 
-    private void EnsureStripeInitialized()
+    private async Task EnsureStripeInitializedAsync(CancellationToken ct)
     {
         if (_stripeInitialized) return;
-        lock (_stripeInitLock)
-        {
-            if (_stripeInitialized) return;
+        lock (_stripeInitLock) { if (_stripeInitialized) return; }
 
-            var secretKeyRaw = _config["Stripe:SecretKey"] ?? string.Empty;
-            var secretKey = _encryption.IsEncrypted(secretKeyRaw) ? _encryption.Decrypt(secretKeyRaw) : secretKeyRaw;
-            StripeConfiguration.ApiKey = secretKey;
-            _stripeInitialized = true;
-        }
+        var setting = await _gatewaySettingService.GetDecryptedByProviderAsync("Stripe", ct)
+            ?? throw new ConflictException("Stripe গেটওয়ে এখনো কনফিগার করা হয়নি।");
+
+        if (!setting.IsEnabled)
+            throw new ConflictException("Stripe payments বর্তমানে বন্ধ আছে।");
+
+        if (string.IsNullOrEmpty(setting.SecretKey))
+            throw new ConflictException("Stripe secret key কনফিগার করা নেই।");
+
+        StripeConfiguration.ApiKey = setting.SecretKey;
+        _stripeInitialized = true;
     }
     private void InitializeStripe()
     {
@@ -70,15 +74,19 @@ public class StripePaymentService : IPaymentService
 
     public async Task<PaymentIntentResult> CreatePaymentIntentAsync(Guid bookingId, CancellationToken ct = default)
     {
-        EnsureStripeInitialized();
+        await EnsureStripeInitializedAsync(ct);
         var booking = await _uow.Bookings.GetWithDetailsAsync(bookingId, ct)
             ?? throw new NotFoundException("Booking", bookingId);
 
         if (booking.Status != BookingStatus.PendingPayment)
             throw new ConflictException("Booking is not in a payable state.");
-
+       
         if (booking.HoldExpiresAt < DateTime.UtcNow)
             throw new ConflictException("Booking hold has expired. Please create a new booking.");
+
+        var existing = await _uow.Payments.GetByBookingIdAsync(bookingId, ct);
+        if (existing != null && existing.Status is PaymentStatus.PendingApproval or PaymentStatus.Succeeded)
+            throw new ConflictException("A payment for this booking already exists.");
 
         var amountInCents = (long)(booking.TotalAmount * 100);
         var user = await _uow.Users.GetByIdAsync(booking.UserId, ct);
@@ -122,7 +130,7 @@ public class StripePaymentService : IPaymentService
 
     public async Task<PaymentDto> ConfirmPaymentAsync(string paymentIntentId, CancellationToken ct = default)
     {
-        EnsureStripeInitialized();
+        await EnsureStripeInitializedAsync(ct);
         var service = new PaymentIntentService();
         var intent = await service.GetAsync(paymentIntentId, cancellationToken: ct);
 
@@ -189,10 +197,9 @@ public class StripePaymentService : IPaymentService
 
     public async Task ProcessWebhookAsync(string payload, string signature, CancellationToken ct = default)
     {
-        EnsureStripeInitialized();
-        var webhookSecretRaw = _config["Stripe:WebhookSecret"] ?? string.Empty;
-        var webhookSecret = _encryption.IsEncrypted(webhookSecretRaw) ? _encryption.Decrypt(webhookSecretRaw) : webhookSecretRaw;
-
+        await EnsureStripeInitializedAsync(ct);
+        var setting = await _gatewaySettingService.GetDecryptedByProviderAsync("Stripe", ct);
+        var webhookSecret = setting?.WebhookSecret ?? string.Empty;
         global::Stripe.Event stripeEvent;
         try
         {
@@ -234,7 +241,7 @@ public class StripePaymentService : IPaymentService
 
     public async Task<RefundDto> ProcessRefundAsync(Guid refundId, bool approve, string? denialReason, CancellationToken ct = default)
     {
-        EnsureStripeInitialized();
+        await EnsureStripeInitializedAsync(ct);
         var allPayments = await _uow.Payments.GetAllAsync(ct);
         var refund = allPayments.SelectMany(p => p.Refunds).FirstOrDefault(r => r.Id == refundId)
             ?? throw new NotFoundException("Refund", refundId);
@@ -275,11 +282,13 @@ public class StripePaymentService : IPaymentService
         if (booking.HoldExpiresAt < DateTime.UtcNow)
             throw new ConflictException("Booking hold has expired. Please create a new booking.");
 
+
         // একই booking-এ duplicate reference submit ঠেকানো
         var existing = await _uow.Payments.GetByBookingIdAsync(request.BookingId, ct);
         if (existing != null && existing.Status is PaymentStatus.PendingApproval or PaymentStatus.Succeeded)
             throw new ConflictException("A payment for this booking already exists.");
 
+       
         var payment = new Payment
         {
             BookingId = request.BookingId,

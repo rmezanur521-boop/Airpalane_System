@@ -64,6 +64,8 @@ public static class DependencyInjection
         services.AddScoped<IPdfService, QuestPdfService>();
         services.AddScoped<IQrCodeService, QrCodeService>();
         services.AddScoped<IPaymentService, StripePaymentService>();
+        services.AddScoped<IPaymentGatewaySettingRepository, PaymentGatewaySettingRepository>();
+        //services.AddScoped<IPaymentGatewaySettingService, PaymentGatewaySettingService>();
 
         // Cache
         services.AddMemoryCache();

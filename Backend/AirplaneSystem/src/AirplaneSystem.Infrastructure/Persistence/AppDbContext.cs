@@ -52,6 +52,7 @@ public class AppDbContext : DbContext
     public DbSet<FooterSetting> FooterSettings => Set<FooterSetting>();
     public DbSet<HomepageSetting> HomepageSettings => Set<HomepageSetting>();
     public DbSet<AnnouncementBar> AnnouncementBars => Set<AnnouncementBar>();
+    public DbSet<PaymentGatewaySetting> PaymentGatewaySettings => Set<PaymentGatewaySetting>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

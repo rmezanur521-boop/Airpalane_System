@@ -30,6 +30,7 @@ public class UnitOfWork : IUnitOfWork
     private IFleetItemRepository? _fleetItems;
     private ITravelServiceRepository? _travelServices;
     private IAnnouncementBarRepository? _announcementBars;
+    private IPaymentGatewaySettingRepository? _paymentGatewaySettings;
     public UnitOfWork(AppDbContext context) => _context = context;
 
     public IUserRepository Users => _users ??= new UserRepository(_context);
@@ -53,6 +54,7 @@ public class UnitOfWork : IUnitOfWork
     public IFleetItemRepository FleetItems => _fleetItems ??= new FleetItemRepository(_context);
     public ITravelServiceRepository TravelServices => _travelServices ??= new TravelServiceRepository(_context);
     public IAnnouncementBarRepository AnnouncementBars => _announcementBars ??= new AnnouncementBarRepository(_context);
+    public IPaymentGatewaySettingRepository PaymentGatewaySettings => _paymentGatewaySettings ??= new PaymentGatewaySettingRepository(_context);
     public void MarkAdded<TEntity>(TEntity entity) where TEntity : class
     {
         var entry = _context.Entry(entity);

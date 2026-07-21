@@ -36,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<ITravelServiceService, TravelServiceService>();
         services.AddScoped<IAnnouncementBarService, AnnouncementBarService>();
         services.AddScoped<IHomepageService, HomepageService>();
+        services.AddScoped<IPaymentGatewaySettingService, PaymentGatewaySettingService>();
         return services;
     }
 }

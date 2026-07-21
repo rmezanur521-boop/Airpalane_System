@@ -12,7 +12,8 @@ import paymentService  from '@/api/paymentService';
 import { TRIP_TYPE, PASSENGER_TYPE, PAYMENT_METHOD, PAYMENT_METHOD_OPTIONS } from '@/utils/constants';
 import { formatCurrency } from '@/utils/formatters';
 import toast from 'react-hot-toast';
-
+import Spinner from '@/components/ui/Spinner';
+import StripeCardForm from '@/components/booking/StripeCardForm';
 const STEPS = ['Review Flight', 'Passenger Details', 'Payment'];
 
 const emptyPassenger = () => ({
@@ -43,11 +44,29 @@ export default function BookingFlowPage() {
 
   const [paymentMethod,   setPaymentMethod]   = useState(PAYMENT_METHOD.STRIPE);
   const [referenceNumber, setReferenceNumber] = useState('');
-
+  const [paymentConfig, setPaymentConfig] = useState(null);
+const [clientSecret, setClientSecret]   = useState('');
+const [intentLoading, setIntentLoading] = useState(false);
   useEffect(() => {
     if (!flight) navigate('/', { replace: true });
   }, [flight, navigate]);
+  useEffect(() => {
+  paymentService.getPublicConfig()
+    .then(({ data }) => setPaymentConfig(data))
+    .catch(() => toast.error('Payment configuration লোড করা যায়নি।'));
+}, []);
 
+useEffect(() => {
+  if (step !== 2 || !booking) return;
+  if (paymentMethod !== PAYMENT_METHOD.STRIPE) return;
+  if (clientSecret) return; // ইতিমধ্যে তৈরি থাকলে দ্বিতীয়বার কল করো না
+
+  setIntentLoading(true);
+  paymentService.createPaymentIntent(booking.id)
+    .then(({ data }) => setClientSecret(data.clientSecret))
+    .catch((err) => setError(err.response?.data?.detail ?? 'Payment intent তৈরি করা যায়নি।'))
+    .finally(() => setIntentLoading(false));
+}, [step, booking, paymentMethod, clientSecret]);
   if (!flight) return null;
 
   const updatePassenger = (i, data) =>
@@ -134,6 +153,48 @@ export default function BookingFlowPage() {
     }
   };
 
+  const handleReferencePayment = async () => {
+  setError('');
+  if (!referenceNumber.trim()) {
+    setError('Please enter your transaction / reference number.');
+    return;
+  }
+  setLoading(true);
+  try {
+    await paymentService.createReferencePayment({
+      bookingId: booking.id,
+      referenceNumber: referenceNumber.trim(),
+      amount: booking.totalAmount,
+      currencyCode: 'USD',
+      method: paymentMethod,
+    });
+    toast.success('Payment submitted! Awaiting admin approval.');
+    navigate(`/bookings/${booking.id}`, { replace: true });
+  } catch (err) {
+    setError(err.response?.data?.detail ?? 'Payment failed. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleStripeSuccess = async (paymentIntent) => {
+  try {
+    await paymentService.confirmPayment(paymentIntent.id);
+    toast.success('Payment confirmed! 🎉');
+    navigate(`/bookings/${booking.id}`, { replace: true });
+  } catch (err) {
+    // webhook ব্যাকআপ হিসেবে কনফার্ম করবে, তবু ইউজারকে জানাও
+    toast.error('Payment succeeded, but confirmation sync-এ সমস্যা হয়েছে। Booking status-টা refresh করে দেখো।');
+    navigate(`/bookings/${booking.id}`, { replace: true });
+  }
+};
+const availableMethods = PAYMENT_METHOD_OPTIONS.filter(({ value }) => {
+  if (!paymentConfig) return true;
+  if (value === PAYMENT_METHOD.STRIPE) return paymentConfig.stripeEnabled;
+  if (value === PAYMENT_METHOD.MOBILE_BANKING) return paymentConfig.bkashEnabled || paymentConfig.nagadEnabled;
+  if (value === PAYMENT_METHOD.BANK_TRANSFER) return true; // ব্যাকএন্ডে এর কোনো "enable/disable" গেটওয়ে নেই, তাই সবসময় দেখাও
+  return true;
+});
   const totalPassengers = passengers.length;
 
   return (
@@ -271,7 +332,7 @@ export default function BookingFlowPage() {
             <div className="card mb-6">
               <h3 className="font-semibold text-slate-700 mb-4">Choose Payment Method</h3>
               <div className="grid grid-cols-3 gap-3">
-                {PAYMENT_METHOD_OPTIONS.map(({ value, label }) => (
+                {availableMethods.map(({ value, label }) => (
                   <button
                     key={value}
                     type="button"
@@ -293,17 +354,18 @@ export default function BookingFlowPage() {
                 <div className="flex items-center gap-2 mb-4">
                   <CreditCard className="h-5 w-5 text-brand-600" />
                   <h3 className="font-semibold text-slate-700">Card Details</h3>
-                  <span className="ml-auto text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                    Simulated
-                  </span>
                 </div>
-                <div className="flex flex-col gap-4">
-                  <Input label="Card number" placeholder="4242 4242 4242 4242" readOnly />
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input label="Expiry" placeholder="MM/YY" readOnly />
-                    <Input label="CVC" placeholder="123" readOnly />
-                  </div>
-                </div>
+                {intentLoading || !clientSecret ? (
+                  <div className="flex justify-center py-8"><Spinner /></div>
+                ) : (
+                  <StripeCardForm
+                    publicKey={paymentConfig?.stripePublicKey}
+                    clientSecret={clientSecret}
+                    amount={booking.totalAmount}
+                    onSuccess={handleStripeSuccess}
+                    onError={(err) => setError(err.message ?? 'Payment failed.')}
+                  />
+                )}
               </div>
             ) : (
               <div className="card mb-6">
@@ -313,28 +375,23 @@ export default function BookingFlowPage() {
                   onChange={(e) => setReferenceNumber(e.target.value)}
                   placeholder="e.g. bKash TrxID"
                 />
-                <Alert
-                  type="info"
-                  className="mt-3"
-                  message="Your payment will be verified by our team before confirmation."
-                />
+                <Alert type="info" className="mt-3"
+                  message="Your payment will be verified by our team before confirmation." />
               </div>
             )}
 
             <div className="flex items-center justify-between">
-              <Button variant="secondary" onClick={() => setStep(1)}>
-                Back
-              </Button>
-              <Button
-                onClick={handlePayment}
-                loading={loading}
-                disabled={paymentMethod !== PAYMENT_METHOD.STRIPE && !referenceNumber.trim()}
-              >
-                <CreditCard className="h-4 w-4" />
-                {paymentMethod === PAYMENT_METHOD.STRIPE
-                  ? `Pay ${formatCurrency(booking.totalAmount)}`
-                  : 'Submit for Review'}
-              </Button>
+              <Button variant="secondary" onClick={() => setStep(1)}>Back</Button>
+              {paymentMethod !== PAYMENT_METHOD.STRIPE && (
+                <Button
+                  onClick={handleReferencePayment}
+                  loading={loading}
+                  disabled={!referenceNumber.trim()}
+                >
+                  <CreditCard className="h-4 w-4" />
+                  Submit for Review
+                </Button>
+              )}
             </div>
           </div>
         )}

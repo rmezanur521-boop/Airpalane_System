@@ -5,6 +5,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { CmsProvider } from '@/context/CmsContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import AdminLayout from '@/components/layout/AdminLayout';
+import PaymentGatewayAdminPage from '@/pages/admin/cms/PaymentGatewayAdminPage';
 
 // Auth pages
 import LoginPage          from '@/pages/auth/LoginPage';
@@ -121,7 +122,7 @@ export default function App() {
             <Route path="/admin/cms/services"         element={<AdminOnlyRoute><TravelServicesAdminPage /></AdminOnlyRoute>} />
             <Route path="/admin/cms/announcements"    element={<AdminOnlyRoute><AnnouncementBarAdminPage /></AdminOnlyRoute>} />
             <Route path="/admin/cms/website-settings" element={<AdminOnlyRoute><WebsiteSettingsPage /></AdminOnlyRoute>} />
-
+            <Route path="/admin/cms/payment-gateways" element={<AdminOnlyRoute><PaymentGatewayAdminPage /></AdminOnlyRoute>} />
             {/* ── Fallbacks ───────────────────────────────────────────── */}
             <Route path="/404" element={<NotFoundPage />} />
             <Route path="*"    element={<Navigate to="/404" replace />} />

@@ -23,6 +23,7 @@ public interface IUnitOfWork : IDisposable
     IFleetItemRepository FleetItems { get; }
     ITravelServiceRepository TravelServices { get; }
     IAnnouncementBarRepository AnnouncementBars { get; }
+    IPaymentGatewaySettingRepository PaymentGatewaySettings { get; }
     void MarkAdded<TEntity>(TEntity entity) where TEntity : class;
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);

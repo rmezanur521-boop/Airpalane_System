@@ -26,6 +26,7 @@ const paymentService = {
 
   // Admin
   getAllPayments: (params) => axiosInstance.get("/payments/admin", { params }),
+  getPublicConfig: () => axiosInstance.get("/payments/config"),
 };
 
 export default paymentService;

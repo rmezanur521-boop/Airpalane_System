@@ -190,7 +190,6 @@ export default function BookingDetailPage() {
                 </Row>
                 
               )}
-              //
               <Row label="Method">{booking.payment.method}</Row>
               {booking.payment.referenceNumber && (
                 <Row label="Reference No.">{booking.payment.referenceNumber}</Row>

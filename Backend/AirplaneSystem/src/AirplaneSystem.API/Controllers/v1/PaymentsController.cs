@@ -1,9 +1,10 @@
-using AirplaneSystem.Application.Common.Models;
+﻿using AirplaneSystem.Application.Common.Models;
 using AirplaneSystem.Application.DTOs.Payments;
 using AirplaneSystem.Application.Services.Interfaces;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PublicPaymentConfigDto = AirplaneSystem.Application.DTOs.Cms.PublicPaymentConfigDto;
 
 namespace AirplaneSystem.API.Controllers.v1;
 
@@ -14,11 +15,13 @@ public class PaymentsController : ControllerBase
 {
     private readonly IPaymentService _paymentService;
     private readonly ILogger<PaymentsController> _logger;
+    private readonly IPaymentGatewaySettingService _paymentGatewaySettingService;
 
-    public PaymentsController(IPaymentService paymentService, ILogger<PaymentsController> logger)
+    public PaymentsController(IPaymentService paymentService, ILogger<PaymentsController> logger, IPaymentGatewaySettingService paymentGatewaySettingService)
     {
         _paymentService = paymentService;
         _logger = logger;
+        _paymentGatewaySettingService = paymentGatewaySettingService;
     }
 
     [HttpPost("reference")]
@@ -106,6 +109,11 @@ public class PaymentsController : ControllerBase
             return Ok(new { received = true }); // Return 200 to prevent Stripe retries
         }
     }
+[HttpGet("config")]
+    [Authorize]
+    [ProducesResponseType(typeof(PublicPaymentConfigDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPublicConfig(CancellationToken ct) =>
+    Ok(await _paymentGatewaySettingService.GetPublicConfigAsync(ct));
 }
 
 public class ProcessRefundRequest
