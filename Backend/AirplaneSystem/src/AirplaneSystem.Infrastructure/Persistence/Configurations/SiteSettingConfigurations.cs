@@ -13,6 +13,8 @@ public class NavbarSettingConfiguration : IEntityTypeConfiguration<NavbarSetting
         builder.Property(n => n.Logo).HasMaxLength(1000);
         builder.Property(n => n.SupportPhone).HasMaxLength(30);
         builder.Property(n => n.SupportEmail).HasMaxLength(256);
+        builder.Property(n => n.FaviconPath).HasMaxLength(1000);
+        builder.Property(n => n.WebsiteUrl).HasMaxLength(300);
         builder.Ignore(n => n.DomainEvents);
     }
 }

@@ -5,7 +5,6 @@ using AirplaneSystem.Domain.Entities.Booking;
 using AirplaneSystem.Domain.Entities.Cms;
 using AirplaneSystem.Domain.Entities.Flights;
 using AirplaneSystem.Domain.Entities.Payments;
-using AirplaneSystem.Domain.Entities.Settings;
 using AirplaneSystem.Domain.Entities.Tickets;
 using AirplaneSystem.Domain.Entities.Users;
 using Microsoft.EntityFrameworkCore;
@@ -41,7 +40,6 @@ public class AppDbContext : DbContext
     public DbSet<Refund> Refunds => Set<Refund>();
     public DbSet<Ticket> Tickets => Set<Ticket>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
-    public DbSet<AdminSetting> AdminSettings => Set<AdminSetting>();
     public DbSet<HeroSection> HeroSections => Set<HeroSection>();
     public DbSet<SpecialOffer> SpecialOffers => Set<SpecialOffer>();
     public DbSet<PopularDestination> PopularDestinations => Set<PopularDestination>();
@@ -53,6 +51,7 @@ public class AppDbContext : DbContext
     public DbSet<HomepageSetting> HomepageSettings => Set<HomepageSetting>();
     public DbSet<AnnouncementBar> AnnouncementBars => Set<AnnouncementBar>();
     public DbSet<PaymentGatewaySetting> PaymentGatewaySettings => Set<PaymentGatewaySetting>();
+    public DbSet<SmtpSettings> SmtpSettings => Set<SmtpSettings>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);

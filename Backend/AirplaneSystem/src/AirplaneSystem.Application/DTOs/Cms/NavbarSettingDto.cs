@@ -1,10 +1,10 @@
-﻿namespace AirplaneSystem.Application.DTOs.Cms;
-
-public class NavbarSettingDto
+﻿public class NavbarSettingDto
 {
     public Guid Id { get; set; }
     public string CompanyName { get; set; } = string.Empty;
     public string? Logo { get; set; }
+    public string? FaviconPath { get; set; }
+    public string? WebsiteUrl { get; set; }
     public string? SupportPhone { get; set; }
     public string? SupportEmail { get; set; }
     public bool ShowLogin { get; set; }
@@ -18,6 +18,7 @@ public class NavbarSettingDto
 public class UpdateNavbarSettingDto
 {
     public string CompanyName { get; set; } = string.Empty;
+    public string? WebsiteUrl { get; set; }
     public string? SupportPhone { get; set; }
     public string? SupportEmail { get; set; }
     public bool ShowLogin { get; set; } = true;

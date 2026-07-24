@@ -52,7 +52,24 @@ public class NavbarSettingService : INavbarSettingService
 
         return _mapper.Map<NavbarSettingDto>(entity);
     }
+    public async Task<NavbarSettingDto> UploadFaviconAsync(IFormFile file, CancellationToken ct = default)
+    {
+        var entity = await _unitOfWork.NavbarSettings.GetSingletonAsync(ct);
+        var oldFavicon = entity.FaviconPath;
+
+        entity.FaviconPath = await _fileStorageService.SaveAsync(file, "cms/favicon", ct);
+        _unitOfWork.NavbarSettings.Update(entity);
+        await _unitOfWork.SaveChangesAsync(ct);
+        _cache.Remove("homepage:composite");
+
+        if (!string.IsNullOrWhiteSpace(oldFavicon))
+            await _fileStorageService.DeleteAsync(oldFavicon, ct);
+
+        return _mapper.Map<NavbarSettingDto>(entity);
+    }
 }
+
+
 
 public class FooterSettingService : IFooterSettingService
 {

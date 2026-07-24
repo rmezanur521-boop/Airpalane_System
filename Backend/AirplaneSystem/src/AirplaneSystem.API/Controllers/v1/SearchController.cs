@@ -2,7 +2,6 @@ using AirplaneSystem.Application.DTOs.Flights;
 using AirplaneSystem.Application.Services.Interfaces;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OutputCaching;
 
 namespace AirplaneSystem.API.Controllers.v1;
 

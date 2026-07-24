@@ -39,7 +39,6 @@ public static class DependencyInjection
         services.AddScoped<IRouteRepository, RouteRepository>();
         services.AddScoped<ITicketRepository, TicketRepository>();
         services.AddScoped<IPromoCodeRepository, PromoCodeRepository>();
-        services.AddScoped<IAdminSettingRepository, AdminSettingRepository>();
         services.AddScoped<IHeroSectionRepository, HeroSectionRepository>();
         services.AddScoped<INavbarSettingRepository, NavbarSettingRepository>();
         services.AddScoped<IFooterSettingRepository, FooterSettingRepository>();

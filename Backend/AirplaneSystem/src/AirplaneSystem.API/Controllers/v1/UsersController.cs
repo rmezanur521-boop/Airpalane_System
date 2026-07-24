@@ -15,7 +15,7 @@ namespace AirplaneSystem.API.Controllers.v1;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
-    private readonly IFileStorageService _fileStorage; // শুধুমাত্র প্রয়োজন হলে; না লাগলে বাদ দিন
+    private readonly IFileStorageService _fileStorage;
 
     public UsersController(IUserService userService)
         => _userService = userService;

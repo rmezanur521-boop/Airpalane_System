@@ -1,8 +1,3 @@
-// src/api/adminSettingsApi.js
-//
-// Existing axios instance (src/api/axiosInstance.js) ব্যবহার করা হয়েছে —
-// সেখানে আগে থেকেই Authorization header + token refresh handle করা আছে।
-
 import axiosInstance from "./axiosInstance";
 
 const BASE = "/admin/settings";
@@ -42,10 +37,6 @@ export const adminSettingsApi = {
     axiosInstance.delete(`${BASE}/favicon`).then((r) => r.data),
 };
 
-/**
- * Backend-এর যেকোনো Error শেপ (field validation error, ProblemDetails 404,
- * বা 401/403 বিনা body-তে) থেকে একটা readable মেসেজ বের করে।
- */
 export function extractErrorMessage(error) {
   const status = error?.response?.status;
   const data = error?.response?.data;
@@ -59,7 +50,6 @@ export function extractErrorMessage(error) {
   return "Something went wrong. Please try again.";
 }
 
-/** Error টা field-level validation error হলে { field, message } ফেরত দেয়, নাহলে null। */
 export function extractFieldError(error) {
   const data = error?.response?.data;
   if (data?.field && data?.message) {
@@ -68,11 +58,6 @@ export function extractFieldError(error) {
   return null;
 }
 
-/**
- * companyLogoUrl / faviconUrl relative path হিসেবে আসে (যেমন "/uploads/..")।
- * VITE_API_HOST env সেট করা থাকলে সেটা Prefix হবে, না থাকলে relative path-ই
- * থাকবে — যেটা Vite dev proxy (/uploads) দিয়ে এমনিতেই কাজ করে।
- */
 export function buildFileUrl(path) {
   if (!path) return null;
   const host = import.meta.env.VITE_API_HOST ?? "";

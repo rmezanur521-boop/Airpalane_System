@@ -27,4 +27,9 @@ public class NavbarSettingController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadLogo([FromForm] UploadFileRequest request, CancellationToken ct)
         => Ok(await _service.UploadLogoAsync(request.File, ct));
+
+    [HttpPost("favicon")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadFavicon([FromForm] UploadFileRequest request, CancellationToken ct)
+        => Ok(await _service.UploadFaviconAsync(request.File, ct));
 }

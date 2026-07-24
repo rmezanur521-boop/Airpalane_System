@@ -1,5 +1,4 @@
 ﻿using AirplaneSystem.Application.DTOs.Cms;
-using AirplaneSystem.Application.DTOs.Cms;
 namespace AirplaneSystem.Application.Services.Interfaces;
 
 public interface IPaymentGatewaySettingService

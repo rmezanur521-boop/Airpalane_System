@@ -1,4 +1,5 @@
 ﻿using AirplaneSystem.Application.Repositories;
+using AirplaneSystem.Application.Services.Interfaces;
 
 public interface IUnitOfWork : IDisposable
 {
@@ -12,7 +13,7 @@ public interface IUnitOfWork : IDisposable
     ITicketRepository Tickets { get; }
     IPromoCodeRepository PromoCodes { get; }
     IAuditLogRepository AuditLogs { get; }
-    IAdminSettingRepository AdminSettings { get; }   // ← নতুন লাইন
+    ISmtpSettingRepository SmtpSettings { get; }
     IHeroSectionRepository HeroSections { get; }
     INavbarSettingRepository NavbarSettings { get; }
     IFooterSettingRepository FooterSettings { get; }

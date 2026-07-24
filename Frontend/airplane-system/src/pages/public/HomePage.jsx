@@ -195,8 +195,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* floating card ছাড়িয়ে নিচের সেকশন যেন হেরোর সাথে ওভারল্যাপ না করে, তাই একটা spacer */}
-      {/* <div className="h-40 md:h-44" /> */}
 
       {cms.loading ? (
         <>

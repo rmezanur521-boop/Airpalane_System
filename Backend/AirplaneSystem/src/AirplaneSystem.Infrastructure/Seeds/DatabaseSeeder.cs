@@ -1,6 +1,5 @@
 using AirplaneSystem.Domain.Entities.Flights;
 using AirplaneSystem.Domain.Entities.Payments;
-using AirplaneSystem.Domain.Entities.Settings;
 using AirplaneSystem.Domain.Entities.Users;
 using AirplaneSystem.Domain.Enums;
 using AirplaneSystem.Infrastructure.Persistence;
@@ -14,9 +13,6 @@ public static class DatabaseSeeder
     public static async Task SeedAsync(AppDbContext context, ILogger logger)
     {
         await context.Database.EnsureCreatedAsync();
-        // 👇 নতুন: AdminSettings Seed — Airports-এর Early Return এর ওপরে রাখা হলো
-        //    যাতে এটা প্রতিবার App Start-এ চেক হয়, এমনকি বাকি Data আগে থেকেই থাকলেও।
-        await SeedAdminSettingsAsync(context, logger);
 
         // 👇 CMS Singleton Rows (Navbar/Footer/Homepage) — একই কারণে Early Return-এর আগে রাখা হলো
         await SeedCmsSingletonsAsync(context, logger);
@@ -34,28 +30,6 @@ public static class DatabaseSeeder
         await SeedPromoCodesAsync(context);
 
         logger.LogInformation("Database seeding completed.");
-    }
-
-    private static async Task SeedAdminSettingsAsync(AppDbContext context, ILogger logger)
-    {
-        if (await context.AdminSettings.AnyAsync()) return;
-
-        logger.LogInformation("Seeding default AdminSettings row...");
-
-        var defaultSettings = new AdminSetting
-        {
-            CompanyName = "AirSystem",
-            SupportEmail = "support@airsystem.com",
-            SupportPhone = "+10000000000",
-            CompanyAddress = "Set your company address in Admin Settings",
-            WebsiteUrl = "https://airsystem.com",
-            FooterText = $"© {DateTime.UtcNow.Year} AirSystem. All rights reserved."
-        };
-
-        await context.AdminSettings.AddAsync(defaultSettings);
-        await context.SaveChangesAsync();
-
-        logger.LogInformation("Default AdminSettings row created.");
     }
     private static async Task SeedCmsSingletonsAsync(AppDbContext context, ILogger logger)
     {
@@ -75,6 +49,12 @@ public static class DatabaseSeeder
         {
             context.HomepageSettings.Add(new HomepageSetting());
             logger.LogInformation("Seeded default HomepageSetting");
+        }
+
+        if (!await context.SmtpSettings.AnyAsync())
+        {
+            context.SmtpSettings.Add(new SmtpSettings());
+            logger.LogInformation("Seeded default SmtpSetting");
         }
 
         await context.SaveChangesAsync();

@@ -3,7 +3,6 @@ import axiosInstance from "../axiosInstance";
 
 const multipartConfig = { headers: { "Content-Type": undefined } };
 
-/** একটা module-এর জন্য পুরো CRUD + image + reorder সার্ভিস বানিয়ে দেয়। */
 export function buildCmsCrud(basePath) {
   return {
     list: () => axiosInstance.get(basePath),

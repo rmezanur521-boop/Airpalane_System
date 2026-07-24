@@ -1,4 +1,5 @@
 using AirplaneSystem.Application.Repositories;
+using AirplaneSystem.Application.Services.Interfaces;
 using AirplaneSystem.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -19,7 +20,6 @@ public class UnitOfWork : IUnitOfWork
     private ITicketRepository? _tickets;
     private IPromoCodeRepository? _promoCodes;
     private IAuditLogRepository? _auditLogs;
-    private IAdminSettingRepository? _adminSettings;
     private IHeroSectionRepository? _heroSections;
     private INavbarSettingRepository? _navbarSettings;
     private IFooterSettingRepository? _footerSettings;
@@ -31,6 +31,7 @@ public class UnitOfWork : IUnitOfWork
     private ITravelServiceRepository? _travelServices;
     private IAnnouncementBarRepository? _announcementBars;
     private IPaymentGatewaySettingRepository? _paymentGatewaySettings;
+    private ISmtpSettingRepository? _smtpSettings;
     public UnitOfWork(AppDbContext context) => _context = context;
 
     public IUserRepository Users => _users ??= new UserRepository(_context);
@@ -43,7 +44,7 @@ public class UnitOfWork : IUnitOfWork
     public ITicketRepository Tickets => _tickets ??= new TicketRepository(_context);
     public IPromoCodeRepository PromoCodes => _promoCodes ??= new PromoCodeRepository(_context);
     public IAuditLogRepository AuditLogs => _auditLogs ??= new AuditLogRepository(_context);
-    public IAdminSettingRepository AdminSettings => _adminSettings ??= new AdminSettingRepository(_context);
+    public ISmtpSettingRepository SmtpSettings => _smtpSettings ??= new SmtpSettingRepository(_context);
     public IHeroSectionRepository HeroSections => _heroSections ??= new HeroSectionRepository(_context);
     public INavbarSettingRepository NavbarSettings => _navbarSettings ??= new NavbarSettingRepository(_context);
     public IFooterSettingRepository FooterSettings => _footerSettings ??= new FooterSettingRepository(_context);
@@ -58,8 +59,6 @@ public class UnitOfWork : IUnitOfWork
     public void MarkAdded<TEntity>(TEntity entity) where TEntity : class
     {
         var entry = _context.Entry(entity);
-        // If it's somehow already tracked (e.g. loaded then re-created),
-        // don't fight the tracker — just ensure the state is Added.
         entry.State = EntityState.Added;
     }
 

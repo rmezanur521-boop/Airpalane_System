@@ -8,6 +8,7 @@ public interface INavbarSettingService
     Task<NavbarSettingDto> GetAsync(CancellationToken ct = default);
     Task<NavbarSettingDto> UpdateAsync(UpdateNavbarSettingDto dto, CancellationToken ct = default);
     Task<NavbarSettingDto> UploadLogoAsync(IFormFile file, CancellationToken ct = default);
+    Task<NavbarSettingDto> UploadFaviconAsync(IFormFile file, CancellationToken ct = default);
 }
 
 public interface IFooterSettingService
