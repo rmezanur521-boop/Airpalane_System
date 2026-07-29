@@ -19,6 +19,19 @@ export function CmsProvider({ children }) {
 
   useEffect(load, [load]);
 
+  useEffect(() => {
+  const faviconPath = data?.navbar?.faviconPath;
+  if (!faviconPath) return;
+  const url = buildCmsImageUrl(faviconPath, cacheBust);
+  let link = document.querySelector("link[rel~='icon']");
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+  link.href = url;
+}, [data, cacheBust]);
+
   return (
     <CmsContext.Provider value={{ ...data, loading, reload: load, cacheBust }}>
       {children}

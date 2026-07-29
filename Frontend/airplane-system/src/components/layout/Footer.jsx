@@ -1,5 +1,5 @@
 // src/components/layout/Footer.jsx
-import { Plane, Facebook, Instagram, Phone, Mail, MapPin } from 'lucide-react';
+import { Plane, Facebook, Instagram, Youtube, Linkedin, Twitter, Phone, Mail, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCms } from '@/context/CmsContext';
 import { buildCmsImageUrl } from '@/api/cms/cmsHelpers';
@@ -65,19 +65,19 @@ export default function Footer() {
         {/* Social */}
         <div>
           <h4 className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">Follow Us</h4>
-          <div className="flex items-center gap-3">
-            {footer?.facebook && (
-              <a href={footer.facebook} target="_blank" rel="noreferrer"
+          <div className="flex items-center gap-3 flex-wrap">
+            {[
+              { key: 'facebook', href: footer?.facebook, Icon: Facebook },
+              { key: 'instagram', href: footer?.instagram, Icon: Instagram },
+              { key: 'youtube', href: footer?.youtube, Icon: Youtube },
+              { key: 'linkedIn', href: footer?.linkedIn, Icon: Linkedin },
+              { key: 'twitter', href: footer?.twitter, Icon: Twitter },
+            ].filter((s) => s.href).map(({ key, href, Icon }) => (
+              <a key={key} href={href} target="_blank" rel="noreferrer"
                 className="h-9 w-9 flex items-center justify-center rounded-full bg-slate-800 hover:bg-brand-600 hover:scale-110 transition-all duration-200">
-                <Facebook className="h-4 w-4" />
+                <Icon className="h-4 w-4" />
               </a>
-            )}
-            {footer?.instagram && (
-              <a href={footer.instagram} target="_blank" rel="noreferrer"
-                className="h-9 w-9 flex items-center justify-center rounded-full bg-slate-800 hover:bg-brand-600 hover:scale-110 transition-all duration-200">
-                <Instagram className="h-4 w-4" />
-              </a>
-            )}
+            ))}
           </div>
         </div>
       </div>

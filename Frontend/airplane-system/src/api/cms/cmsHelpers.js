@@ -29,6 +29,11 @@ export function buildCmsSettings(basePath) {
       fd.append("File", file);
       return axiosInstance.post(`${basePath}/logo`, fd, multipartConfig);
     },
+    uploadFavicon: (file) => {
+      const fd = new FormData();
+      fd.append("File", file);
+      return axiosInstance.post(`${basePath}/favicon`, fd, multipartConfig);
+    },
   };
 }
 

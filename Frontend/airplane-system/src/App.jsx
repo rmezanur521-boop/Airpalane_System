@@ -38,7 +38,6 @@ import AirlinesAdminPage  from '@/pages/admin/AirlinesAdminPage';
 import AirportsAdminPage  from '@/pages/admin/AirportsAdminPage';
 import ReportsPage        from '@/pages/admin/ReportsPage';
 import AuditLogsPage      from '@/pages/admin/AuditLogsPage';
-import AdminSettingsPage  from '@/pages/admin/AdminSettings/AdminSettingsPage';
 
 // Website CMS pages
 import HeroAdminPage              from '@/pages/admin/cms/HeroAdminPage';
@@ -111,7 +110,6 @@ export default function App() {
             <Route path="/admin/airports"     element={<AdminOnlyRoute><AirportsAdminPage /></AdminOnlyRoute>} />
             <Route path="/admin/reports"      element={<AdminOnlyRoute><ReportsPage /></AdminOnlyRoute>} />
             <Route path="/admin/audit-logs"   element={<AdminOnlyRoute><AuditLogsPage /></AdminOnlyRoute>} />
-            <Route path="/admin/settings"     element={<AdminOnlyRoute><AdminSettingsPage /></AdminOnlyRoute>} />
 
             {/* ── Website CMS ─────────────────────────────────────────── */}
             <Route path="/admin/cms/hero"             element={<AdminOnlyRoute><HeroAdminPage /></AdminOnlyRoute>} />

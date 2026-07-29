@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Plane, LayoutDashboard, Calendar, CreditCard, Users,
-  Building2, MapPin, BarChart2, ScrollText, LogOut, X, Shield, Settings,
+  Building2, MapPin, BarChart2, ScrollText, LogOut, X, Shield,
   Globe, ChevronDown, Image, Tag, Compass, Sparkles, PlaneTakeoff, Briefcase, Megaphone, SlidersHorizontal,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -38,12 +38,11 @@ const cmsLinks = [
 const bottomLinks = [
   { to: '/admin/reports',    label: 'Reports',    Icon: BarChart2, adminOnly: true },
   { to: '/admin/audit-logs', label: 'Audit Logs', Icon: ScrollText, adminOnly: true },
-  { to: '/admin/settings',   label: 'Settings',   Icon: Settings,  adminOnly: true },
 ];
 
 export default function Sidebar({ open, onClose }) {
   const { user, logout, isAdmin } = useAuth();
-  const { navbar, cacheBust }     = useCms(); // ← নতুন
+  const { navbar, cacheBust }     = useCms(); 
   const navigate = useNavigate();
   const location = useLocation();
   const [cmsOpen, setCmsOpen] = useState(location.pathname.startsWith('/admin/cms'));
