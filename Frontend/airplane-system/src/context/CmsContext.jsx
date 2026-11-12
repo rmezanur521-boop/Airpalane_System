@@ -1,6 +1,6 @@
-// src/context/CmsContext.jsx
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import homepageService from '@/api/cms/homepageService';
+import { buildCmsImageUrl } from '@/api/cms/cmsHelpers';
 
 const CmsContext = createContext(null);
 

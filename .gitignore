@@ -10,8 +10,9 @@ out/
 **/.cache/
 **/deps/
 **/deps_temp_*/
-## Visual Studio / Rider
+## IDE files
 .vs/
+.vscode/
 .idea/
 *.user
 *.suo
@@ -57,5 +58,4 @@ desktop.ini
 
 ## Docker
 docker-compose.override.yml
-k_test_
-h origin main --force-with-lease
+

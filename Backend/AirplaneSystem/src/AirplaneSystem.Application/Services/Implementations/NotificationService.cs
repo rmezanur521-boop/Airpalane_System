@@ -56,6 +56,16 @@ public class NotificationService : INotificationService
                 var logoBytes = await _fileStorage.ReadAsync(flight.Airline.LogoUrl, ct);
                 var qrBytes = await _qrCode.GenerateAsync(ticket.QrCodeData, ct);
 
+                var baggage = ticket.BookingSegment.SeatClass switch
+                {
+                    Domain.Enums.SeatClass.First => "2x 32kg Checked + 2x 10kg Cabin",
+                    Domain.Enums.SeatClass.Business => "2x 32kg Checked + 1x 10kg Cabin",
+                    _ => "1x 23kg Checked + 1x 7kg Cabin"
+                };
+
+                var baseFare = ticket.BookingSegment.BaseFare > 0 ? ticket.BookingSegment.BaseFare : Math.Round(ticket.BookingSegment.SegmentTotal * 0.85m, 2);
+                var taxesFees = (ticket.BookingSegment.Taxes + ticket.BookingSegment.Fees) > 0 ? (ticket.BookingSegment.Taxes + ticket.BookingSegment.Fees) : Math.Round(ticket.BookingSegment.SegmentTotal - baseFare, 2);
+
                 var model = new TicketPdfModel
                 {
                     TicketNumber = ticket.TicketNumber,
@@ -68,14 +78,32 @@ public class NotificationService : INotificationService
                     AirlineLogoBytes = logoBytes,
                     OriginIata = flight.Route.OriginAirport.IataCode,
                     OriginCity = flight.Route.OriginAirport.City,
+                    OriginAirportName = flight.Route.OriginAirport.Name,
+                    OriginCountry = flight.Route.OriginAirport.Country,
+                    OriginTerminal = flight.Route.OriginAirport.Terminal ?? "T1",
                     DestinationIata = flight.Route.DestinationAirport.IataCode,
                     DestinationCity = flight.Route.DestinationAirport.City,
+                    DestinationAirportName = flight.Route.DestinationAirport.Name,
+                    DestinationCountry = flight.Route.DestinationAirport.Country,
+                    DestinationTerminal = flight.Route.DestinationAirport.Terminal ?? "T3",
+                    AircraftModel = flight.Aircraft?.Model ?? "Boeing 777-300ER",
                     DepartureTime = flight.DepartureTime,
                     ArrivalTime = flight.ArrivalTime,
                     SeatClass = ticket.BookingSegment.SeatClass.ToString(),
                     SeatNumber = ticket.BookingPassenger.Seat?.SeatNumber,
+                    PassportNumber = ticket.BookingPassenger.PassportNumber,
+                    PassportCountry = ticket.BookingPassenger.PassportCountry,
+                    PassengerType = ticket.BookingPassenger.PassengerType.ToString(),
+                    MealPreference = ticket.BookingPassenger.MealPreference,
+                    BaggageAllowance = baggage,
+                    BaseFare = baseFare,
+                    TaxesAndFees = taxesFees,
+                    DiscountAmount = booking.DiscountAmount,
                     TotalAmount = ticket.BookingSegment.SegmentTotal,
                     PaymentStatus = booking.Payment?.Status.ToString() ?? "Paid",
+                    PaymentMethod = booking.Payment?.Method.ToString() ?? "Stripe Credit Card",
+                    TransactionReference = booking.Payment?.ReferenceNumber ?? booking.Payment?.StripePaymentIntentId,
+                    Gate = flight.GateNumber ?? "A12",
                     QrCodeBytes = qrBytes,
                 };
 

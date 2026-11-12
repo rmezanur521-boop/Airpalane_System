@@ -78,10 +78,12 @@ export default function SearchResultsPage() {
     }
   }, [params, sortBy, sortDesc, maxPrice, maxStops, tripType, adults, children, infants, seatClass]);
 
+  const promoCode   = params.get('promoCode');
+
   useEffect(() => { fetchResults(); }, [fetchResults]);
 
   const handleSelect = (flight, returnFlight) => {
-    const state = { flight, returnFlight, seatClass, passengers: { adults, children, infants } };
+    const state = { flight, returnFlight, seatClass, passengers: { adults, children, infants }, promoCode };
     navigate('/book', { state });
   };
 
@@ -97,13 +99,18 @@ export default function SearchResultsPage() {
             {isMultiCity
               ? 'Multi-City Results'
               : isRoundTrip
-              ? `${params.get('originIata')} ⇄ ${params.get('destinationIata')}`
-              : `${params.get('originIata')} → ${params.get('destinationIata')}`}
+              ? `${params.get('originIata') || ''} ⇄ ${params.get('destinationIata') || ''}`
+              : `${params.get('originIata') || ''} → ${params.get('destinationIata') || ''}`}
           </h1>
           <p className="text-slate-500 text-sm mt-1">
             {adults + children + infants} passenger{adults + children + infants > 1 ? 's' : ''} ·{' '}
             {seatClass} · {results.length} result{results.length !== 1 ? 's' : ''}
           </p>
+          {promoCode && (
+            <div className="inline-flex items-center gap-2 bg-brand-50 border border-brand-200 text-brand-800 px-3.5 py-1.5 rounded-xl text-xs font-semibold mt-2.5 shadow-sm">
+              <span>🏷️ Promo Code <strong className="font-extrabold">{promoCode}</strong> applied to this deal!</span>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
@@ -243,8 +250,8 @@ export default function SearchResultsPage() {
                   </div>
                   <FlightCard flight={r.outboundFlight} selectedClass={seatClass} />
                   <div className="flex items-center gap-2 mt-4 mb-3">
-                    <span className="text-xs font-bold text-sky-600 uppercase tracking-wider
-                                     bg-sky-50 px-2 py-1 rounded-lg">
+                    <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider
+                                     bg-emerald-50 px-2 py-1 rounded-lg">
                       Return
                     </span>
                   </div>

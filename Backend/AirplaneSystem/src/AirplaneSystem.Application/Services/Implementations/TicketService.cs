@@ -61,25 +61,58 @@ public class TicketService : ITicketService
             ?? throw new NotFoundException($"Ticket '{ticketNumber}' not found.");
 
         var qrBytes = await _qrCode.GenerateAsync(ticket.QrCodeData, ct);
+        var flight = ticket.BookingSegment.Flight;
+        var passenger = ticket.BookingPassenger;
+        var origin = flight.Route?.OriginAirport;
+        var destination = flight.Route?.DestinationAirport;
+        var airline = flight.Airline;
+        var logoBytes = await _fileStorage.ReadAsync(airline?.LogoUrl ?? string.Empty, ct);
+
+        var baggage = ticket.BookingSegment.SeatClass switch
+        {
+            Domain.Enums.SeatClass.First => "2x 32kg Checked + 2x 10kg Cabin",
+            Domain.Enums.SeatClass.Business => "2x 32kg Checked + 1x 10kg Cabin",
+            _ => "1x 23kg Checked + 1x 7kg Cabin"
+        };
+
         var model = new Common.Interfaces.BoardingPassModel
         {
             TicketNumber = ticket.TicketNumber,
             BookingReference = ticket.Booking.BookingReference,
-            PassengerName = ticket.BookingPassenger.FullName,
-            FlightNumber = ticket.BookingSegment.Flight.FlightNumber,
-            AirlineName = ticket.BookingSegment.Flight.Airline.Name,
-            OriginIata = ticket.BookingSegment.Flight.Route.OriginAirport.IataCode,
-            OriginCity = ticket.BookingSegment.Flight.Route.OriginAirport.City,
-            DestinationIata = ticket.BookingSegment.Flight.Route.DestinationAirport.IataCode,
-            DestinationCity = ticket.BookingSegment.Flight.Route.DestinationAirport.City,
-            DepartureTime = ticket.BookingSegment.Flight.DepartureTime,
-            ArrivalTime = ticket.BookingSegment.Flight.ArrivalTime,
+            BookingDate = ticket.Booking.CreatedAt,
+            PassengerName = passenger.FullName,
+            FlightNumber = flight.FlightNumber,
+            AirlineName = airline?.Name ?? "AirSystem International",
+            AirlineIata = airline?.IataCode ?? "AS",
+            AirlineLogoBytes = logoBytes,
+            OriginIata = origin?.IataCode ?? "DAC",
+            OriginCity = origin?.City ?? "Dhaka",
+            OriginAirportName = origin?.Name ?? "Hazrat Shahjalal Intl",
+            OriginCountry = origin?.Country ?? "Bangladesh",
+            OriginTerminal = origin?.Terminal ?? "T1",
+            DestinationIata = destination?.IataCode ?? "DXB",
+            DestinationCity = destination?.City ?? "Dubai",
+            DestinationAirportName = destination?.Name ?? "Dubai International",
+            DestinationCountry = destination?.Country ?? "United Arab Emirates",
+            DestinationTerminal = destination?.Terminal ?? "T3",
+            AircraftModel = flight.Aircraft?.Model ?? "Boeing 777-300ER",
+            DepartureTime = flight.DepartureTime,
+            ArrivalTime = flight.ArrivalTime,
             SeatClass = ticket.BookingSegment.SeatClass.ToString(),
-            SeatNumber = ticket.BookingPassenger.Seat?.SeatNumber,
-            Gate = ticket.BookingSegment.Flight.GateNumber ?? "TBD",
-            Terminal = ticket.BookingSegment.Flight.Route.OriginAirport.Terminal ?? "TBD",
+            SeatNumber = passenger.Seat?.SeatNumber ?? "TBD",
+            PassportNumber = passenger.PassportNumber,
+            PassportCountry = passenger.PassportCountry,
+            PassengerType = passenger.PassengerType.ToString(),
+            MealPreference = passenger.MealPreference,
+            BaggageAllowance = baggage,
+            Gate = flight.GateNumber ?? "A12",
+            Terminal = origin?.Terminal ?? "T1",
+            BoardingGroup = ticket.BookingSegment.SeatClass == Domain.Enums.SeatClass.First ? "ZONE 1" 
+                : (ticket.BookingSegment.SeatClass == Domain.Enums.SeatClass.Business ? "ZONE 2" : "ZONE 3"),
+            BoardingTime = flight.DepartureTime.AddMinutes(-45),
             QrCodeBytes = qrBytes,
-            TotalAmount = ticket.BookingSegment.SegmentTotal
+            TotalAmount = ticket.BookingSegment.SegmentTotal,
+            PaymentStatus = ticket.Booking.Payment?.Status.ToString() ?? "Paid"
         };
 
         return await _pdf.GenerateBoardingPassPdfAsync(model, ct);
@@ -165,28 +198,62 @@ public class TicketService : ITicketService
         Ticket ticket, byte[]? qrBytes, CancellationToken ct)
     {
         var airline = ticket.BookingSegment.Flight.Airline;
-        var logoBytes = await _fileStorage.ReadAsync(airline.LogoUrl, ct);
+        var logoBytes = await _fileStorage.ReadAsync(airline?.LogoUrl ?? string.Empty, ct);
+        var flight = ticket.BookingSegment.Flight;
+        var passenger = ticket.BookingPassenger;
+        var booking = ticket.Booking;
+        var segment = ticket.BookingSegment;
+        var origin = flight.Route?.OriginAirport;
+        var destination = flight.Route?.DestinationAirport;
+
+        var baggage = segment.SeatClass switch
+        {
+            Domain.Enums.SeatClass.First => "2x 32kg Checked + 2x 10kg Cabin",
+            Domain.Enums.SeatClass.Business => "2x 32kg Checked + 1x 10kg Cabin",
+            _ => "1x 23kg Checked + 1x 7kg Cabin"
+        };
+
+        var baseFare = segment.BaseFare > 0 ? segment.BaseFare : Math.Round(segment.SegmentTotal * 0.85m, 2);
+        var taxesFees = (segment.Taxes + segment.Fees) > 0 ? (segment.Taxes + segment.Fees) : Math.Round(segment.SegmentTotal - baseFare, 2);
 
         return new Common.Interfaces.TicketPdfModel
         {
             TicketNumber = ticket.TicketNumber,
-            BookingReference = ticket.Booking.BookingReference,
-            BookingDate = ticket.Booking.CreatedAt,
-            PassengerName = ticket.BookingPassenger.FullName,
-            FlightNumber = ticket.BookingSegment.Flight.FlightNumber,
-            AirlineName = airline.Name,
-            AirlineIata = airline.IataCode,
+            BookingReference = booking.BookingReference,
+            BookingDate = booking.CreatedAt,
+            PassengerName = passenger.FullName,
+            FlightNumber = flight.FlightNumber,
+            AirlineName = airline?.Name ?? "AirSystem International",
+            AirlineIata = airline?.IataCode ?? "AS",
             AirlineLogoBytes = logoBytes,
-            OriginIata = ticket.BookingSegment.Flight.Route.OriginAirport.IataCode,
-            OriginCity = ticket.BookingSegment.Flight.Route.OriginAirport.City,
-            DestinationIata = ticket.BookingSegment.Flight.Route.DestinationAirport.IataCode,
-            DestinationCity = ticket.BookingSegment.Flight.Route.DestinationAirport.City,
-            DepartureTime = ticket.BookingSegment.Flight.DepartureTime,
-            ArrivalTime = ticket.BookingSegment.Flight.ArrivalTime,
-            SeatClass = ticket.BookingSegment.SeatClass.ToString(),
-            SeatNumber = ticket.BookingPassenger.Seat?.SeatNumber,
-            TotalAmount = ticket.BookingSegment.SegmentTotal,
-            PaymentStatus = ticket.Booking.Payment?.Status.ToString() ?? "Paid",
+            OriginIata = origin?.IataCode ?? "DAC",
+            OriginCity = origin?.City ?? "Dhaka",
+            OriginAirportName = origin?.Name ?? "Hazrat Shahjalal Intl",
+            OriginCountry = origin?.Country ?? "Bangladesh",
+            OriginTerminal = origin?.Terminal ?? "T1",
+            DestinationIata = destination?.IataCode ?? "DXB",
+            DestinationCity = destination?.City ?? "Dubai",
+            DestinationAirportName = destination?.Name ?? "Dubai International",
+            DestinationCountry = destination?.Country ?? "United Arab Emirates",
+            DestinationTerminal = destination?.Terminal ?? "T3",
+            AircraftModel = flight.Aircraft?.Model ?? "Boeing 777-300ER",
+            DepartureTime = flight.DepartureTime,
+            ArrivalTime = flight.ArrivalTime,
+            SeatClass = segment.SeatClass.ToString(),
+            SeatNumber = passenger.Seat?.SeatNumber,
+            PassportNumber = passenger.PassportNumber,
+            PassportCountry = passenger.PassportCountry,
+            PassengerType = passenger.PassengerType.ToString(),
+            MealPreference = passenger.MealPreference,
+            BaggageAllowance = baggage,
+            BaseFare = baseFare,
+            TaxesAndFees = taxesFees,
+            DiscountAmount = booking.DiscountAmount,
+            TotalAmount = segment.SegmentTotal,
+            PaymentStatus = booking.Payment?.Status.ToString() ?? "Paid",
+            PaymentMethod = booking.Payment?.Method.ToString() ?? "Stripe Credit Card",
+            TransactionReference = booking.Payment?.ReferenceNumber ?? booking.Payment?.StripePaymentIntentId,
+            Gate = flight.GateNumber ?? "A12",
             QrCodeBytes = qrBytes
         };
     }

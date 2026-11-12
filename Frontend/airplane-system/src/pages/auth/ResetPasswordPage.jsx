@@ -6,8 +6,14 @@ import Button from '@/components/ui/Button';
 import Input  from '@/components/ui/Input';
 import Alert  from '@/components/ui/Alert';
 import toast  from 'react-hot-toast';
+import { useCms } from '@/context/CmsContext';
+import { buildCmsImageUrl } from '@/api/cms/cmsHelpers';
 
 export default function ResetPasswordPage() {
+  const { navbar, cacheBust }  = useCms();
+  const companyName            = navbar?.companyName || 'AirSystem';
+  const logoUrl                = buildCmsImageUrl(navbar?.logo, cacheBust);
+
   const [params]              = useSearchParams();
   const navigate              = useNavigate();
   const [password, setPassword] = useState('');
@@ -34,14 +40,23 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-sky-50
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-emerald-50
                     flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl
-                          bg-brand-600 text-white mb-4">
-            <Plane className="h-8 w-8" />
-          </div>
+          <Link to="/" className="inline-flex items-center justify-center mb-4 group" title="Return to home">
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={companyName}
+                className="h-16 w-auto object-contain max-h-16 drop-shadow-md group-hover:scale-105 transition-transform"
+              />
+            ) : (
+              <div className="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-brand-600 text-white shadow-lg shadow-brand-500/25">
+                <Plane className="h-8 w-8" />
+              </div>
+            )}
+          </Link>
           <h1 className="text-2xl font-bold text-slate-800">Reset your password</h1>
           <p className="text-slate-500 mt-1 text-sm">Choose a new strong password</p>
         </div>

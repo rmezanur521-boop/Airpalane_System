@@ -15,7 +15,7 @@ import { formatCurrency, formatNumber } from '@/utils/formatters';
 const TODAY    = new Date().toISOString().split('T')[0];
 const MONTH_AGO = new Date(Date.now() - 30 * 86400000).toISOString().split('T')[0];
 
-const COLORS = ['#0ea5e9', '#0284c7', '#0369a1', '#075985', '#0c4a6e', '#082f49'];
+const COLORS = ['#22c55e', '#16a34a', '#027f22', '#02681c', '#035217', '#023c12'];
 
 export default function ReportsPage() {
   const [revenue,  setRevenue]  = useState(null);

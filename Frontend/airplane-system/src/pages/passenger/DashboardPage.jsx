@@ -65,7 +65,7 @@ export default function DashboardPage() {
                   )
               ).length,
               Icon: Plane,
-              color: 'text-sky-600 bg-sky-50',
+              color: 'text-emerald-600 bg-emerald-50',
             },
           ].map((s) => (
             <div key={s.label} className="card flex items-center gap-4">
@@ -100,14 +100,14 @@ export default function DashboardPage() {
             to="/tickets"
             className="card flex items-center gap-4 hover:shadow-md transition group"
           >
-            <div className="p-3 rounded-xl bg-sky-50 text-sky-600 group-hover:bg-sky-100 transition">
+            <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition">
               <Ticket className="h-6 w-6" />
             </div>
             <div className="flex-1">
               <p className="font-semibold text-slate-800">My Tickets</p>
               <p className="text-sm text-slate-400">View and download boarding passes</p>
             </div>
-            <ArrowRight className="h-5 w-5 text-slate-300 group-hover:text-sky-500 transition" />
+            <ArrowRight className="h-5 w-5 text-slate-300 group-hover:text-emerald-500 transition" />
           </Link>
         </div>
 

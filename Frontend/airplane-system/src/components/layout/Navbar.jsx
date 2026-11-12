@@ -12,7 +12,6 @@ import { buildCmsImageUrl } from '@/api/cms/cmsHelpers';
 import toast from 'react-hot-toast';
 
 const navLinks = [
-  { to: '/',         label: 'Search Flights' },
   { to: '/bookings', label: 'My Bookings',   auth: true },
   { to: '/tickets',  label: 'My Tickets',    auth: true },
 ];

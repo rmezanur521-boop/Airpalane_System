@@ -17,6 +17,7 @@ import VerifyEmailPage    from '@/pages/auth/VerifyEmailPage';
 // Public pages
 import HomePage          from '@/pages/public/HomePage';
 import SearchResultsPage from '@/pages/public/SearchResultsPage';
+import PrivacyPolicyPage from '@/pages/public/PrivacyPolicyPage';
 import NotFoundPage      from '@/pages/public/NotFoundPage';
 
 // Passenger pages
@@ -85,6 +86,7 @@ export default function App() {
             {/* ── Public ──────────────────────────────────────────────── */}
             <Route path="/"             element={<HomePage />} />
             <Route path="/search"       element={<SearchResultsPage />} />
+            <Route path="/privacy"      element={<PrivacyPolicyPage />} />
             <Route path="/login"        element={<LoginPage />} />
             <Route path="/register"     element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />

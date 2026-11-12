@@ -26,16 +26,23 @@ export default function WebsiteSettingsPage() {
   const [smtp, setSmtp]           = useState(null);
 
   useEffect(() => {
-    Promise.all([
+    Promise.allSettled([
       navbarSettingsService.get(),
       footerSettingsService.get(),
       homepageSettingsService.get(),
       smtpSettingsService.get(),
     ])
       .then(([n, f, h, s]) => {
-        setNavbar(n.data); setFooter(f.data); setHomepage(h.data); setSmtp(s.data);
+        if (n.status === 'fulfilled') setNavbar(n.value?.data ?? {});
+        if (f.status === 'fulfilled') setFooter(f.value?.data ?? {});
+        if (h.status === 'fulfilled') setHomepage(h.value?.data ?? {});
+        if (s.status === 'fulfilled') setSmtp(s.value?.data ?? {});
+
+        const rejected = [n, f, h, s].filter((x) => x.status === 'rejected');
+        if (rejected.length > 0) {
+          toast.error(extractCmsError(rejected[0].reason));
+        }
       })
-      .catch((err) => toast.error(extractCmsError(err)))
       .finally(() => setLoading(false));
   }, []);
 
@@ -75,7 +82,7 @@ export default function WebsiteSettingsPage() {
 }
 
 function NavbarForm({ data, onSaved }) {
-  const [form, setForm]     = useState(data);
+  const [form, setForm]     = useState(data ?? {});
   const [saving, setSaving] = useState(false);
 
   const [logoFile, setLogoFile]       = useState(null);
@@ -83,6 +90,14 @@ function NavbarForm({ data, onSaved }) {
 
   const [faviconFile, setFaviconFile]       = useState(null);
   const [faviconPreview, setFaviconPreview] = useState(buildCmsImageUrl(data?.faviconPath));
+
+  useEffect(() => {
+    if (data) {
+      setForm(data);
+      setLogoPreview(buildCmsImageUrl(data?.logo));
+      setFaviconPreview(buildCmsImageUrl(data?.faviconPath));
+    }
+  }, [data]);
 
   const setF = (k) => (e) => {
     const v = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -150,12 +165,12 @@ function NavbarForm({ data, onSaved }) {
         <p className="text-xs text-slate-400 mt-1">Recommended: 32×32 or 64×64 .png/.ico file.</p>
       </div>
 
-      <Input label="Company Name" value={form.companyName ?? ''} onChange={setF('companyName')} required />
-      <Input label="Website URL" value={form.websiteUrl ?? ''} onChange={setF('websiteUrl')} placeholder="https://example.com" />
+      <Input label="Company Name" value={form?.companyName ?? ''} onChange={setF('companyName')} required />
+      <Input label="Website URL" value={form?.websiteUrl ?? ''} onChange={setF('websiteUrl')} placeholder="https://example.com" />
 
       <div className="grid grid-cols-2 gap-4">
-        <Input label="Support Phone" value={form.supportPhone ?? ''} onChange={setF('supportPhone')} />
-        <Input label="Support Email" type="email" value={form.supportEmail ?? ''} onChange={setF('supportEmail')} />
+        <Input label="Support Phone" value={form?.supportPhone ?? ''} onChange={setF('supportPhone')} />
+        <Input label="Support Email" type="email" value={form?.supportEmail ?? ''} onChange={setF('supportEmail')} />
       </div>
       <div className="grid grid-cols-2 gap-3">
         {[
@@ -166,7 +181,7 @@ function NavbarForm({ data, onSaved }) {
           ['announcementEnabled', 'Enable announcement bar'],
         ].map(([key, label]) => (
           <label key={key} className="flex items-center gap-2 text-sm text-slate-700">
-            <input type="checkbox" checked={!!form[key]} onChange={setF(key)}
+            <input type="checkbox" checked={!!form?.[key]} onChange={setF(key)}
               className="rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
             {label}
           </label>
@@ -190,6 +205,11 @@ const SOCIAL_FIELDS = [
 function FooterForm({ data, onSaved }) {
   const [form, setForm]     = useState(data ?? {});
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (data) setForm(data);
+  }, [data]);
+
   const setF = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
   const handleSave = async () => {
@@ -207,23 +227,23 @@ function FooterForm({ data, onSaved }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Input label="About" value={form.about ?? ''} onChange={setF('about')} />
-      <Input label="Address" value={form.address ?? ''} onChange={setF('address')} />
+      <Input label="About" value={form?.about ?? ''} onChange={setF('about')} />
+      <Input label="Address" value={form?.address ?? ''} onChange={setF('address')} />
       <div className="grid grid-cols-2 gap-4">
-        <Input label="Phone" value={form.phone ?? ''} onChange={setF('phone')} />
-        <Input label="Email" type="email" value={form.email ?? ''} onChange={setF('email')} />
+        <Input label="Phone" value={form?.phone ?? ''} onChange={setF('phone')} />
+        <Input label="Email" type="email" value={form?.email ?? ''} onChange={setF('email')} />
       </div>
 
       <div>
         <h4 className="text-sm font-semibold text-slate-700 mb-2">Social Links</h4>
         <div className="grid grid-cols-2 gap-4">
           {SOCIAL_FIELDS.map(([key, label]) => (
-            <Input key={key} label={label} value={form[key] ?? ''} onChange={setF(key)} placeholder="https://..." />
+            <Input key={key} label={label} value={form?.[key] ?? ''} onChange={setF(key)} placeholder="https://..." />
           ))}
         </div>
       </div>
 
-      <Input label="Copyright Text" value={form.copyright ?? ''} onChange={setF('copyright')} />
+      <Input label="Copyright Text" value={form?.copyright ?? ''} onChange={setF('copyright')} />
       <div className="flex justify-end mt-2">
         <Button loading={saving} onClick={handleSave}>Save Footer Settings</Button>
       </div>
@@ -234,6 +254,11 @@ function FooterForm({ data, onSaved }) {
 function HomepageTogglesForm({ data, onSaved }) {
   const [form, setForm]     = useState(data ?? {});
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (data) setForm(data);
+  }, [data]);
+
   const setF = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.checked }));
 
   const handleSave = async () => {
@@ -265,7 +290,7 @@ function HomepageTogglesForm({ data, onSaved }) {
         <label key={key}
           className="flex items-center justify-between px-4 py-3 rounded-xl border border-slate-100 hover:bg-slate-50 transition">
           <span className="text-sm font-medium text-slate-700">{label}</span>
-          <input type="checkbox" checked={!!form[key]} onChange={setF(key)}
+          <input type="checkbox" checked={!!form?.[key]} onChange={setF(key)}
             className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" />
         </label>
       ))}
@@ -277,10 +302,14 @@ function HomepageTogglesForm({ data, onSaved }) {
 }
 
 function SmtpForm({ data, onSaved }) {
-  const [form, setForm]                     = useState({ ...data, smtpPassword: '' });
+  const [form, setForm]                     = useState({ ...(data ?? {}), smtpPassword: '' });
   const [changingPassword, setChangingPassword] = useState(false);
   const [saving, setSaving]                 = useState(false);
   const [error, setError]                   = useState('');
+
+  useEffect(() => {
+    if (data) setForm((p) => ({ ...(data ?? {}), smtpPassword: p.smtpPassword || '' }));
+  }, [data]);
 
   const setF = (k) => (e) => setForm((p) => ({ ...p, [k]: e.target.value }));
 
@@ -288,12 +317,12 @@ function SmtpForm({ data, onSaved }) {
     setSaving(true); setError('');
     try {
       const payload = {
-        smtpHost: form.smtpHost,
-        smtpPort: Number(form.smtpPort),
-        smtpUsername: form.smtpUsername,
-        smtpFromName: form.smtpFromName,
-        smtpFromEmail: form.smtpFromEmail,
-        ...(changingPassword && form.smtpPassword ? { smtpPassword: form.smtpPassword } : {}),
+        smtpHost: form?.smtpHost,
+        smtpPort: Number(form?.smtpPort),
+        smtpUsername: form?.smtpUsername,
+        smtpFromName: form?.smtpFromName,
+        smtpFromEmail: form?.smtpFromEmail,
+        ...(changingPassword && form?.smtpPassword ? { smtpPassword: form?.smtpPassword } : {}),
       };
       const { data: updated } = await smtpSettingsService.update(payload);
       onSaved(updated);
@@ -311,11 +340,11 @@ function SmtpForm({ data, onSaved }) {
     <div className="flex flex-col gap-4">
       {error && <p className="text-sm text-red-500">{error}</p>}
       <div className="grid sm:grid-cols-2 gap-4">
-        <Input label="SMTP Host" value={form.smtpHost ?? ''} onChange={setF('smtpHost')} />
-        <Input label="SMTP Port" type="number" value={form.smtpPort ?? ''} onChange={setF('smtpPort')} />
-        <Input label="SMTP Username" value={form.smtpUsername ?? ''} onChange={setF('smtpUsername')} />
-        <Input label="From Name" value={form.smtpFromName ?? ''} onChange={setF('smtpFromName')} />
-        <Input label="From Email" type="email" value={form.smtpFromEmail ?? ''} onChange={setF('smtpFromEmail')} />
+        <Input label="SMTP Host" value={form?.smtpHost ?? ''} onChange={setF('smtpHost')} />
+        <Input label="SMTP Port" type="number" value={form?.smtpPort ?? ''} onChange={setF('smtpPort')} />
+        <Input label="SMTP Username" value={form?.smtpUsername ?? ''} onChange={setF('smtpUsername')} />
+        <Input label="From Name" value={form?.smtpFromName ?? ''} onChange={setF('smtpFromName')} />
+        <Input label="From Email" type="email" value={form?.smtpFromEmail ?? ''} onChange={setF('smtpFromEmail')} />
 
         <label className="block">
           <span className="text-sm font-medium text-slate-700">SMTP Password</span>
@@ -323,7 +352,7 @@ function SmtpForm({ data, onSaved }) {
             {changingPassword ? (
               <input className="input-base" type="password" autoComplete="new-password"
                 placeholder="Enter new password" autoFocus
-                value={form.smtpPassword ?? ''} onChange={setF('smtpPassword')} />
+                value={form?.smtpPassword ?? ''} onChange={setF('smtpPassword')} />
             ) : (
               <div className="flex items-center gap-3">
                 <input className="input-base" type="password" value="••••••••" disabled readOnly />

@@ -36,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<IAnnouncementBarService, AnnouncementBarService>();
         services.AddScoped<IHomepageService, HomepageService>();
         services.AddScoped<IPaymentGatewaySettingService, PaymentGatewaySettingService>();
+        services.AddScoped<ISmtpSettingService, SmtpSettingService>();
         return services;
     }
 }

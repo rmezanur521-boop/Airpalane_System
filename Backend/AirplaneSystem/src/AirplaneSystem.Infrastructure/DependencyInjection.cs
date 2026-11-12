@@ -1,4 +1,4 @@
-﻿using AirplaneSystem.Application.Common.Interfaces;
+using AirplaneSystem.Application.Common.Interfaces;
 using AirplaneSystem.Application.Repositories;
 using AirplaneSystem.Application.Services.Interfaces;
 using AirplaneSystem.Infrastructure.ExternalServices.Cache;
@@ -49,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<IFleetItemRepository, FleetItemRepository>();
         services.AddScoped<ITravelServiceRepository, TravelServiceRepository>();
         services.AddScoped<IAnnouncementBarRepository, AnnouncementBarRepository>();
+        services.AddScoped<ISmtpSettingRepository, SmtpSettingRepository>();
         // Security
         services.AddSingleton<IEncryptionService, AesEncryptionService>();
         services.AddScoped<IPasswordHasher, BcryptPasswordHasher>();

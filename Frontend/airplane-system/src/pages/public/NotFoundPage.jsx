@@ -3,7 +3,7 @@ import { Plane } from 'lucide-react';
 
 export default function NotFoundPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-sky-50
+    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-emerald-50
                     flex items-center justify-center p-4">
       <div className="text-center">
         <div className="inline-flex items-center justify-center h-20 w-20 rounded-2xl

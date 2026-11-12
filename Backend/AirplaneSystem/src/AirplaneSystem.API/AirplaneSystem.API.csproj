@@ -25,4 +25,10 @@
     <ProjectReference Include="..\AirplaneSystem.Infrastructure\AirplaneSystem.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\uploads\airlines\logos\" />
+    <Folder Include="wwwroot\uploads\company\favicon\" />
+    <Folder Include="wwwroot\uploads\company\logo\" />
+  </ItemGroup>
+
 </Project>
